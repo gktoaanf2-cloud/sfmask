@@ -3,88 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SF PAIR PROFILE - RAW DATA HUD</title>
-    <!-- Pretendard 폰트 로드 (가장 안정적인 방식 적용) -->
+    <title>SF PAIR PROFILE - GEOMETRIC HUD</title>
+    <!-- Pretendard 폰트 로드 -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
         :root {
             --theme-a: #00f0ff;
             --theme-b: #ff0055;
             --sf-text: #ffffff;
-            --text-dim: rgba(255, 255, 255, 0.5);
-            --line-color: rgba(255, 255, 255, 0.15);
+            --text-dim: rgba(255, 255, 255, 0.4);
+            --line-color: rgba(255, 255, 255, 0.1);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
 
-        body {
-            background-color: #000; overflow: hidden;
-            color: var(--sf-text); width: 100vw; height: 100vh;
-        }
+        body { background-color: #000; overflow: hidden; color: var(--sf-text); width: 100vw; height: 100vh; }
 
-        .capture-canvas {
-            position: relative; width: 100%; height: 100%;
-            display: flex; overflow: hidden; background: #000;
-        }
+        .capture-canvas { position: relative; width: 100%; height: 100%; display: flex; overflow: hidden; background: #000; }
 
         /* --- 레이아웃 래퍼 --- */
         .panel-wrapper { position: relative; height: 100vh; }
         .wrap-sub { width: 11vw; background-color: #000; position: relative; overflow: hidden; }
         .wrap-bg { width: 39vw; }
         
-        #wrap-bg-a { background: linear-gradient(to bottom, #020202 20%, var(--theme-a) 150%); }
-        #wrap-bg-b { background: linear-gradient(to bottom, #020202 20%, var(--theme-b) 150%); }
+        #wrap-bg-a { background: linear-gradient(to bottom, #020205 10%, var(--theme-a) 160%); }
+        #wrap-bg-b { background: linear-gradient(to bottom, #020205 10%, var(--theme-b) 160%); }
 
         /* --- 서브 및 메인 이미지 --- */
         .img-panel { width: 100%; height: 100%; background-size: cover; background-position: center top; transition: 0.5s ease; }
         
         .img-sub {
-            opacity: 0.3;
-            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 10%, rgba(0,0,0,0) 80%);
-            mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 10%, rgba(0,0,0,0) 80%);
+            opacity: 0.25;
+            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 5%, rgba(0,0,0,0) 70%);
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 5%, rgba(0,0,0,0) 70%);
             z-index: 1;
         }
 
         .img-main {
-            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 95%);
-            mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 95%);
+            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 90%);
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 90%);
         }
 
-        /* --- [NEW] 사이드바 90도 버티컬 애니메이션 텍스트 --- */
+        /* 사이드바 버티컬 애니메이션 텍스트 */
         .vertical-ticker {
-            position: absolute; top: 0; left: 0;
-            width: 100%; height: 100%;
-            display: flex; align-items: center; justify-content: center;
-            z-index: 2; pointer-events: none;
-            overflow: hidden;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center; z-index: 2; pointer-events: none; overflow: hidden;
         }
-        
         .vertical-text {
-            font-size: 8vh; /* 화면 높이에 비례한 거대한 폰트 */
-            font-weight: 900;
-            text-transform: uppercase;
-            white-space: nowrap;
-            /* SF 홀로그램 텍스트 연출 (테두리만 남김) */
-            color: transparent;
-            -webkit-text-stroke: 1px rgba(255, 255, 255, 0.08);
-            letter-spacing: 0.2em;
+            font-size: 8vh; font-weight: 900; text-transform: uppercase; white-space: nowrap;
+            color: transparent; -webkit-text-stroke: 1px rgba(255, 255, 255, 0.05); letter-spacing: 0.2em;
         }
-
-        /* 왼쪽은 아래에서 위로 읽히도록 180도 추가 회전 */
-        .wrap-sub.left .vertical-text {
-            writing-mode: vertical-rl;
-            transform: rotate(180deg);
-            animation: scroll-up 20s linear infinite;
-        }
-        /* 오른쪽은 위에서 아래로 읽히도록 */
-        .wrap-sub.right .vertical-text {
-            writing-mode: vertical-rl;
-            animation: scroll-down 20s linear infinite;
-        }
-
+        .wrap-sub.left .vertical-text { writing-mode: vertical-rl; transform: rotate(180deg); animation: scroll-up 20s linear infinite; }
+        .wrap-sub.right .vertical-text { writing-mode: vertical-rl; animation: scroll-down 20s linear infinite; }
         @keyframes scroll-up { 0% { transform: rotate(180deg) translateY(-50%); } 100% { transform: rotate(180deg) translateY(50%); } }
         @keyframes scroll-down { 0% { transform: translateY(50%); } 100% { transform: translateY(-50%); } }
 
+        /* --- SF 기하학적 장식 (크로스헤어 & 데코 라인) --- */
+        .sf-decor-line { position: absolute; z-index: 5; pointer-events: none; background: var(--line-color); }
+        .decor-h { width: 100%; height: 1px; top: 8vh; }
+        .decor-v { width: 1px; height: 100%; left: 50%; transform: translateX(-50%); opacity: 0.3; }
+        
+        .crosshair { position: absolute; width: 15px; height: 15px; z-index: 5; pointer-events: none; }
+        .crosshair::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(255,255,255,0.4); }
+        .crosshair::after { content: ''; position: absolute; top: 0; left: 50%; width: 1px; height: 100%; background: rgba(255,255,255,0.4); }
 
         /* --- 인터페이스 레이어 --- */
         .interface-layer {
@@ -92,78 +73,128 @@
             z-index: 10; pointer-events: none; display: flex; justify-content: space-between; padding: 60px;
         }
 
-        /* 상단 HUD */
+        /* 상단 HUD 컨트롤 */
         .upload-hud {
             position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
             display: flex; align-items: center; gap: 8px; pointer-events: auto;
-            background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 4px; border: 1px solid var(--line-color);
+            background: rgba(0,0,0,0.5); padding: 8px 15px; border-radius: 2px;
+            border: 1px solid var(--line-color); backdrop-filter: blur(4px);
         }
-        .sf-btn { display: inline-flex; align-items: center; padding: 6px 10px; border: 1px solid rgba(255,255,255,0.2); background: transparent; color: #fff; font-size: 11px; font-weight: 600; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
-        .sf-btn:hover { background: rgba(255,255,255,0.1); }
+        .sf-btn { display: inline-flex; align-items: center; padding: 5px 8px; border: 1px solid transparent; background: transparent; color: var(--text-dim); font-size: 10px; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .sf-btn:hover { color: #fff; border-bottom: 1px solid #fff; }
         .sf-btn input[type="file"], .sf-btn input[type="color"] { display: none; }
-        .sf-btn.color-btn { padding-left: 0; border: none; }
-        .color-circle { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+        .color-circle { width: 8px; height: 8px; transform: rotate(45deg); display: inline-block; margin-right: 6px; }
 
-        /* --- [NEW] 미학적 프로필 패널 (배경 삭제, 텍스트 UI 고도화) --- */
+        /* --- 미학적 프로필 패널 --- */
         .profile-panel {
             pointer-events: auto; width: 26vw; height: 75vh;
-            display: flex; flex-direction: column; justify-content: flex-end;
+            display: flex; flex-direction: column; justify-content: flex-end; position: relative;
         }
         .profile-panel.left { margin-left: 12vw; }
         .profile-panel.right { margin-right: 12vw; align-items: flex-end; }
 
-        /* 코드네임 (가장 큰 이름) */
+        /* [NEW] 해시태그 영역 */
+        .tag-group {
+            display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; width: 100%;
+        }
+        .profile-panel.right .tag-group { justify-content: flex-end; }
+        
+        .sf-tag {
+            font-size: 11px; padding: 4px 10px; color: #fff;
+            border: 1px solid var(--line-color);
+            background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);
+            letter-spacing: 0.1em; outline: none;
+            /* 모서리가 살짝 잘린 기하학적 SF 디자인 */
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+        .profile-panel.left .sf-tag { border-bottom: 2px solid var(--theme-a); }
+        .profile-panel.right .sf-tag { border-bottom: 2px solid var(--theme-b); }
+
+        /* 코드네임 */
         .codename {
             font-size: 3.5vw; font-weight: 900; letter-spacing: 0.05em; text-transform: uppercase;
-            margin-bottom: 25px; line-height: 1; outline: none;
+            margin-bottom: 30px; line-height: 1; outline: none; color: #fff;
         }
-        .profile-panel.left .codename { color: #fff; text-shadow: 0 0 20px var(--theme-a), 0 0 40px rgba(0,0,0,0.8); }
-        .profile-panel.right .codename { color: #fff; text-shadow: 0 0 20px var(--theme-b), 0 0 40px rgba(0,0,0,0.8); text-align: right; }
+        .profile-panel.left .codename { text-shadow: 0 0 20px var(--theme-a); }
+        .profile-panel.right .codename { text-shadow: 0 0 20px var(--theme-b); text-align: right; }
 
-        /* 데이터 그리드 (세부 항목) */
+        /* [NEW] 데이터 그리드 (밑줄 삭제, 마름모 아이콘 추가) */
         .stat-grid {
-            width: 100%; display: grid; gap: 12px 0;
-            grid-template-columns: 100px 1fr; /* 라벨 100px, 나머지 내용 */
+            width: 100%; display: grid; gap: 14px 0;
+            grid-template-columns: 100px 1fr;
             align-items: flex-start;
         }
-        /* 오른쪽 패널은 그리드 좌우 반전 느낌을 위해 정렬 변경 */
         .profile-panel.right .stat-grid { text-align: right; grid-template-columns: 1fr 100px; }
 
         .stat-label {
             font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
-            padding-top: 4px; font-weight: 700; outline: none;
-            border-top: 1px solid var(--line-color);
+            font-weight: 700; outline: none; position: relative;
         }
-        .profile-panel.left .stat-label { color: var(--theme-a); }
-        .profile-panel.right .stat-label { color: var(--theme-b); }
+        /* 왼쪽 패널 마름모 (글자 왼쪽) */
+        .profile-panel.left .stat-label { color: var(--theme-a); padding-left: 18px; }
+        .profile-panel.left .stat-label::before {
+            content: ''; position: absolute; left: 0; top: 4px;
+            width: 6px; height: 6px; background: var(--theme-a); transform: rotate(45deg);
+            box-shadow: 0 0 5px var(--theme-a);
+        }
+        /* 오른쪽 패널 마름모 (글자 오른쪽 대칭) */
+        .profile-panel.right .stat-label { color: var(--theme-b); padding-right: 18px; }
+        .profile-panel.right .stat-label::after {
+            content: ''; position: absolute; right: 0; top: 4px;
+            width: 6px; height: 6px; background: var(--theme-b); transform: rotate(45deg);
+            box-shadow: 0 0 5px var(--theme-b);
+        }
 
         .stat-value {
             font-size: 14px; color: #e2e8f0; font-weight: 300; line-height: 1.6; word-break: keep-all; outline: none;
-            padding-top: 2px; border-top: 1px solid var(--line-color);
         }
 
-        /* --- 중앙 하단 페어명 (div contenteditable 로 교체하여 폰트 깨짐 완벽 해결) --- */
+        /* --- [NEW] 중앙 페어명 & 서브타이틀 (크기 축소, 은은한 효과) --- */
         .center-pair-hud {
-            position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
-            text-align: center; width: 60vw; pointer-events: auto;
+            position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
+            text-align: center; width: 40vw; pointer-events: auto;
+            display: flex; flex-direction: column; align-items: center;
         }
+        
         .center-pair-name {
             display: inline-block; width: 100%;
             background: transparent; border: none; color: #fff;
-            font-size: 2.8vw; font-weight: 900; text-align: center;
-            letter-spacing: 0.5em; outline: none;
-            text-shadow: 0 0 15px rgba(255,255,255,0.4), 0 5px 30px rgba(0,0,0,1);
+            font-size: 1.8vw; /* 크기 대폭 축소 */
+            font-weight: 300; /* 얇고 세련된 폰트 웨이트 */
+            text-align: center; letter-spacing: 0.6em; outline: none;
             text-transform: uppercase;
+            /* 딥 다크 그림자 삭제, 은은한 자체 발광만 남김 */
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+            margin-bottom: 8px;
         }
+
+        .center-pair-sub {
+            display: inline-block; width: 80%;
+            font-size: 10px; color: var(--theme-a); /* 픽업된 테마색이 은은하게 섞이도록 유도 가능 */
+            letter-spacing: 0.4em; text-transform: uppercase; font-weight: 400; outline: none;
+            opacity: 0.8;
+        }
+        
+        /* 중앙 타겟팅 UI 장식 */
+        .center-target-ui {
+            width: 30px; height: 30px; border: 1px solid var(--line-color);
+            border-radius: 50%; position: absolute; top: -40px; left: 50%; transform: translateX(-50%);
+            display: flex; align-items: center; justify-content: center; pointer-events: none;
+        }
+        .center-target-ui::after { content: ''; width: 4px; height: 4px; background: #fff; border-radius: 50%; }
+
     </style>
 </head>
 <body>
     <div class="capture-canvas" id="export-area">
         
-        <!-- [LAYER 1] 4패널 구조 & 버티컬 텍스트 애니메이션 -->
+        <!-- 기하학적 배경 장식 -->
+        <div class="sf-decor-line decor-h"></div>
+        <div class="sf-decor-line decor-v"></div>
+
+        <!-- [LAYER 1] 4패널 & 애니메이션 -->
         <div class="panel-wrapper wrap-sub left">
             <div class="img-panel img-sub" id="panel-sub-a"></div>
-            <!-- 왼쪽 세로 텍스트 -->
             <div class="vertical-ticker"><div class="vertical-text" id="vert-text-a">ALPHA</div></div>
         </div>
         
@@ -177,41 +208,50 @@
         
         <div class="panel-wrapper wrap-sub right">
             <div class="img-panel img-sub" id="panel-sub-b"></div>
-            <!-- 오른쪽 세로 텍스트 -->
             <div class="vertical-ticker"><div class="vertical-text" id="vert-text-b">OMEGA</div></div>
         </div>
 
         <!-- [LAYER 2] 데이터 인터페이스 레이어 -->
         <div class="interface-layer">
             
+            <!-- 상단 십자선 (좌우) -->
+            <div class="crosshair" style="top: 8vh; left: 11vw; transform: translate(-50%, -50%);"></div>
+            <div class="crosshair" style="top: 8vh; right: 11vw; transform: translate(50%, -50%);"></div>
+
             <!-- 상단 컨트롤 패널 -->
             <div class="upload-hud">
-                <label class="sf-btn color-btn">
-                    <span class="color-circle" style="background:var(--theme-a)" id="circle-a"></span> 테마 A
+                <label class="sf-btn">
+                    <span class="color-circle" style="background:var(--theme-a)" id="circle-a"></span> COLOR A
                     <input type="color" value="#00f0ff" onchange="updateTheme(event, 'a')">
                 </label>
-                <label class="sf-btn">Sub A<input type="file" accept="image/*" onchange="loadImage(event, 'panel-sub-a')"></label>
-                <label class="sf-btn">Bg A<input type="file" accept="image/*" onchange="loadImage(event, 'panel-bg-a')"></label>
-                <span style="color:var(--line-color); margin: 0 5px;">||</span>
-                <label class="sf-btn">Bg B<input type="file" accept="image/*" onchange="loadImage(event, 'panel-bg-b')"></label>
-                <label class="sf-btn">Sub B<input type="file" accept="image/*" onchange="loadImage(event, 'panel-sub-b')"></label>
-                <label class="sf-btn color-btn">
-                    <span class="color-circle" style="background:var(--theme-b)" id="circle-b"></span> 테마 B
+                <label class="sf-btn">Sub <input type="file" accept="image/*" onchange="loadImage(event, 'panel-sub-a')"></label>
+                <label class="sf-btn">Bg <input type="file" accept="image/*" onchange="loadImage(event, 'panel-bg-a')"></label>
+                <span style="color:var(--text-dim); margin: 0 10px;">|</span>
+                <label class="sf-btn">Bg <input type="file" accept="image/*" onchange="loadImage(event, 'panel-bg-b')"></label>
+                <label class="sf-btn">Sub <input type="file" accept="image/*" onchange="loadImage(event, 'panel-sub-b')"></label>
+                <label class="sf-btn">
+                    <span class="color-circle" style="background:var(--theme-b)" id="circle-b"></span> COLOR B
                     <input type="color" value="#ff0055" onchange="updateTheme(event, 'b')">
                 </label>
             </div>
 
             <!-- 프로필 A (왼쪽) -->
             <div class="profile-panel left">
-                <!-- 코드네임: 수정 시 사이드바 텍스트와 실시간 동기화됨 -->
+                <!-- 해시태그 영역 -->
+                <div class="tag-group">
+                    <div class="sf-tag" contenteditable="true" spellcheck="false">#TAG_WORD_01</div>
+                    <div class="sf-tag" contenteditable="true" spellcheck="false">#KEYWORD</div>
+                    <div class="sf-tag" contenteditable="true" spellcheck="false">#STATUS_ALIVE</div>
+                </div>
+
                 <div class="codename" id="codename-input-a" contenteditable="true" spellcheck="false" oninput="syncText('a')">ALPHA</div>
                 
                 <div class="stat-grid">
                     <div class="stat-label" contenteditable="true" spellcheck="false">NAME</div>
-                    <div class="stat-value" contenteditable="true" spellcheck="false">본명을 입력하세요</div>
+                    <div class="stat-value" contenteditable="true" spellcheck="false">이름 입력란</div>
                     
                     <div class="stat-label" contenteditable="true" spellcheck="false">AGE</div>
-                    <div class="stat-value" contenteditable="true" spellcheck="false">연령 입력</div>
+                    <div class="stat-value" contenteditable="true" spellcheck="false">나이 입력</div>
                     
                     <div class="stat-label" contenteditable="true" spellcheck="false">NATION</div>
                     <div class="stat-value" contenteditable="true" spellcheck="false">국적 입력</div>
@@ -220,27 +260,32 @@
                     <div class="stat-value" contenteditable="true" spellcheck="false">소속 입력</div>
                     
                     <div class="stat-label" contenteditable="true" spellcheck="false">PERSONALITY</div>
-                    <div class="stat-value" contenteditable="true" spellcheck="false">캐릭터의 성격을 서술하십시오.</div>
+                    <div class="stat-value" contenteditable="true" spellcheck="false">성격 묘사. 텍스트가 아무리 길어져도 레이아웃이 무너지지 않습니다.</div>
                     
                     <div class="stat-label" contenteditable="true" spellcheck="false">BACKGROUND</div>
-                    <div class="stat-value" contenteditable="true" spellcheck="false">자세한 설정과 과거사를 이곳에 작성합니다. 길어져도 디자인이 깨지지 않도록 레이아웃을 구축했습니다.</div>
+                    <div class="stat-value" contenteditable="true" spellcheck="false">세부 설정 및 과거사. 마름모 아이콘과 투명한 배경이 데이터베이스의 느낌을 극대화합니다.</div>
                     
                     <div class="stat-label" contenteditable="true" spellcheck="false">ETC</div>
-                    <div class="stat-value" contenteditable="true" spellcheck="false">기타 메모 사항</div>
+                    <div class="stat-value" contenteditable="true" spellcheck="false">추가 메모</div>
                 </div>
             </div>
 
             <!-- 프로필 B (오른쪽) -->
             <div class="profile-panel right">
-                <!-- 코드네임: 수정 시 사이드바 텍스트와 실시간 동기화됨 -->
+                <!-- 해시태그 영역 (우측 정렬) -->
+                <div class="tag-group">
+                    <div class="sf-tag" contenteditable="true" spellcheck="false">#CLASSIFIED</div>
+                    <div class="sf-tag" contenteditable="true" spellcheck="false">#KEYWORD</div>
+                    <div class="sf-tag" contenteditable="true" spellcheck="false">#TAG_WORD_02</div>
+                </div>
+
                 <div class="codename" id="codename-input-b" contenteditable="true" spellcheck="false" oninput="syncText('b')">OMEGA</div>
                 
                 <div class="stat-grid">
-                    <!-- 오른쪽은 값(Value)이 먼저 오고 라벨(Label)이 우측에 붙는 대칭 구조 -->
-                    <div class="stat-value" contenteditable="true" spellcheck="false">본명을 입력하세요</div>
+                    <div class="stat-value" contenteditable="true" spellcheck="false">이름 입력란</div>
                     <div class="stat-label" contenteditable="true" spellcheck="false">NAME</div>
                     
-                    <div class="stat-value" contenteditable="true" spellcheck="false">연령 입력</div>
+                    <div class="stat-value" contenteditable="true" spellcheck="false">나이 입력</div>
                     <div class="stat-label" contenteditable="true" spellcheck="false">AGE</div>
                     
                     <div class="stat-value" contenteditable="true" spellcheck="false">국적 입력</div>
@@ -249,27 +294,28 @@
                     <div class="stat-value" contenteditable="true" spellcheck="false">소속 입력</div>
                     <div class="stat-label" contenteditable="true" spellcheck="false">AFFILIATION</div>
                     
-                    <div class="stat-value" contenteditable="true" spellcheck="false">캐릭터의 성격을 서술하십시오.</div>
+                    <div class="stat-value" contenteditable="true" spellcheck="false">성격 묘사. 대칭을 이루는 구조가 시각적 안정감을 부여합니다.</div>
                     <div class="stat-label" contenteditable="true" spellcheck="false">PERSONALITY</div>
                     
-                    <div class="stat-value" contenteditable="true" spellcheck="false">배경 설정을 입력하십시오. 우측 정렬된 대칭 구조가 미학적 안정감을 줍니다.</div>
+                    <div class="stat-value" contenteditable="true" spellcheck="false">세부 설정 및 과거사. 오른쪽에 위치한 마름모 에셋이 테마 컬러로 빛납니다.</div>
                     <div class="stat-label" contenteditable="true" spellcheck="false">BACKGROUND</div>
                     
-                    <div class="stat-value" contenteditable="true" spellcheck="false">기타 메모 사항</div>
+                    <div class="stat-value" contenteditable="true" spellcheck="false">추가 메모</div>
                     <div class="stat-label" contenteditable="true" spellcheck="false">ETC</div>
                 </div>
             </div>
 
-            <!-- 중앙 페어명 -->
+            <!-- 중앙 하단 페어명 & 서브타이틀 -->
             <div class="center-pair-hud">
-                <div class="center-pair-name" contenteditable="true" spellcheck="false">PAIR NAME HERE</div>
+                <div class="center-target-ui"></div> <!-- 기하학적 원형 장식 -->
+                <div class="center-pair-name" contenteditable="true" spellcheck="false">PAIR CONNECTION</div>
+                <div class="center-pair-sub" contenteditable="true" spellcheck="false" style="color: var(--text-dim);">ENTER YOUR SUBTITLE OR RELATIONSHIP STATUS HERE</div>
             </div>
 
         </div>
     </div>
 
     <script>
-        // 1. 이미지 로드
         function loadImage(event, targetId) {
             const file = event.target.files[0];
             if (!file) return;
@@ -278,19 +324,15 @@
             reader.readAsDataURL(file);
         }
 
-        // 2. 테마 컬러 실시간 업데이트
         function updateTheme(event, target) {
             const color = event.target.value;
             document.documentElement.style.setProperty(`--theme-${target}`, color);
-            document.getElementById(`circle-${target}`).style.background = color; // 버튼 UI 색상도 변경
+            document.getElementById(`circle-${target}`).style.background = color;
         }
 
-        // 3. 코드네임 <-> 사이드바 애니메이션 텍스트 실시간 동기화
         function syncText(target) {
-            // 입력된 코드네임 값을 가져와 양옆 빈 공간 제거 후 대문자 변환
             let text = document.getElementById(`codename-input-${target}`).innerText.trim().toUpperCase();
-            if (text === '') text = 'UNKNOWN'; // 다 지웠을 때의 기본값 방어
-            // 사이드바 텍스트에 즉시 반영
+            if (text === '') text = 'UNKNOWN';
             document.getElementById(`vert-text-${target}`).innerText = text;
         }
     </script>
