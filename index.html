@@ -6,13 +6,199 @@
     <title>SF PAIR PROFILE FRAME</title>
     <!-- Pretendard 폰트 로드 -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-    <link rel="stylesheet" href="style.css">
+    <style>
+        :root {
+            --sf-bg: #000000;
+            --sf-accent: #00f0ff; /* 차가운 네온 시안 */
+            --sf-text: #ffffff;
+            --sf-ui-bg: rgba(0, 0, 0, 0.6);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Pretendard', sans-serif;
+        }
+
+        body {
+            background-color: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--sf-text);
+        }
+
+        /* 캡처 캔버스: 1920x1080 비율 고정 */
+        .capture-canvas {
+            position: relative;
+            width: 1920px;
+            height: 1080px;
+            background-color: var(--sf-bg);
+            display: flex;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0, 240, 255, 0.1);
+        }
+
+        /* 중앙 하단: 페어명 */
+        .center-pair-name {
+            position: absolute;
+            bottom: 60px; /* 격자 삭제 후 하단으로 배치 */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            text-align: center;
+            width: 500px;
+        }
+
+        .center-pair-name input {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 52px;
+            font-weight: 800;
+            text-align: center;
+            letter-spacing: 0.25em;
+            outline: none;
+            text-shadow: 0 0 20px rgba(0, 240, 255, 0.8);
+            width: 100%;
+        }
+
+        .center-pair-name .sf-line {
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--sf-accent), transparent);
+            margin-top: 15px;
+            box-shadow: 0 0 10px var(--sf-accent);
+        }
+
+        /* 캐릭터 섹션 분할 (정확히 50%씩) */
+        .character-section {
+            width: 50%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 개별 배경 이미지 영역 (50% 영역 전체 차지) */
+        .bg-layer {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-color: #0a0b10;
+            z-index: 1;
+        }
+
+        /* 사이드 끝 흉상 영역 (서브 이미지) */
+        .edge-bust {
+            position: absolute;
+            bottom: 0;
+            width: 50%; /* 흉상의 너비 */
+            height: 90%;
+            z-index: 2;
+            background-size: cover;
+            background-position: center bottom;
+            background-repeat: no-repeat;
+            /* 위에서 아래로 사라지는 그라데이션 마스크 */
+            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%);
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%);
+        }
+
+        /* 왼쪽 캐릭터는 왼쪽 끝에, 오른쪽 캐릭터는 오른쪽 끝에 흉상 배치 */
+        .character-section.left .edge-bust { left: 0; }
+        .character-section.right .edge-bust { right: 0; }
+
+        .black-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.9) 100%);
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        /* 내부 컨텐츠 영역 (하단으로 정보가 이어짐) */
+        .content-area {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            padding: 80px 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            z-index: 10;
+        }
+
+        .character-section.right .content-area {
+            align-items: flex-end; /* 오른쪽 캐릭터 텍스트는 우측 정렬 */
+            text-align: right;
+        }
+
+        /* 업로드 UI 버튼 세팅 */
+        .upload-ui {
+            display: flex;
+            gap: 15px;
+            z-index: 50; /* 버튼이 이미지에 묻히지 않도록 최상단 배치 */
+        }
+
+        .sf-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            border: 1px solid rgba(255,255,255,0.3);
+            background: var(--sf-ui-bg);
+            color: var(--sf-accent);
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: 0.3s;
+            backdrop-filter: blur(5px);
+        }
+
+        .sf-btn:hover {
+            border-color: var(--sf-accent);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+            background: rgba(0, 240, 255, 0.1);
+        }
+
+        .sf-btn input[type="file"] {
+            display: none;
+        }
+
+        /* 임시 프로필 텍스트 박스 (배경 제거, 텍스트만 띄움) */
+        .profile-temp-box {
+            margin-top: auto; /* 하단으로 정보가 이어지도록 밀어냄 */
+            margin-bottom: 80px; /* 페어명과 겹치지 않도록 여백 */
+            max-width: 80%;
+            /* 텍스트 가독성을 위한 강력한 그림자 (배경 박스 없음) */
+            text-shadow: 0px 2px 10px rgba(0, 0, 0, 0.9), 0px 4px 20px rgba(0, 0, 0, 0.8);
+        }
+
+        .sf-title {
+            font-size: 16px;
+            color: var(--sf-accent);
+            letter-spacing: 0.2em;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .sf-text {
+            font-size: 18px;
+            line-height: 2.0;
+            color: #f1f3f5;
+            font-weight: 400;
+            word-break: keep-all;
+        }
+    </style>
 </head>
 <body>
-    <!-- 추후 캡처(이미지 내보내기)의 기준이 될 메인 캔버스 -->
     <div class="capture-canvas" id="export-area">
         
-        <!-- 중앙: 페어명 (레이어 최상단) -->
+        <!-- 중앙: 페어명 (하단 배치) -->
         <div class="center-pair-name">
             <input type="text" placeholder="PAIR NAME" spellcheck="false">
             <div class="sf-line"></div>
@@ -20,46 +206,59 @@
 
         <!-- 왼쪽 캐릭터 영역 -->
         <div class="character-section left">
-            <!-- 끝자락 흉상 영역 -->
-            <div class="edge-bust">
-                <div class="image-placeholder"></div>
-                <div class="black-overlay"></div>
-            </div>
+            <div class="bg-layer" id="left-bg"></div>
+            <div class="edge-bust" id="left-sub"></div>
+            <div class="black-overlay"></div>
             
-            <!-- 컨텐츠 영역 (임시 텍스트 및 UI) -->
             <div class="content-area">
                 <div class="upload-ui">
-                    <label class="sf-btn">배경 이미지<input type="file" accept="image/*"></label>
-                    <label class="sf-btn">서브 이미지<input type="file" accept="image/*"></label>
+                    <label class="sf-btn">배경 이미지<input type="file" accept="image/*" onchange="loadImage(event, 'left-bg')"></label>
+                    <label class="sf-btn">서브 이미지<input type="file" accept="image/*" onchange="loadImage(event, 'left-sub')"></label>
                 </div>
                 <div class="profile-temp-box">
-                    <h3 class="sf-title">PROFILE_DATA // LEFT</h3>
-                    <p class="sf-text">여기에 왼쪽 캐릭터의 세부 프로필과 서사가 입력될 예정입니다. 대기 중...</p>
+                    <h3 class="sf-title">PROFILE_DATA // 01</h3>
+                    <p class="sf-text" contenteditable="true">별도의 배경 없이 텍스트만 떠오릅니다.<br>이곳을 클릭하여 왼쪽 캐릭터의 프로필을 자유롭게 수정하십시오.<br>보스께서 원하시는 대로 완벽하게 커스텀 가능합니다.</p>
                 </div>
             </div>
         </div>
 
         <!-- 오른쪽 캐릭터 영역 -->
         <div class="character-section right">
-            <!-- 컨텐츠 영역 (임시 텍스트 및 UI) -->
+            <div class="bg-layer" id="right-bg"></div>
+            <div class="edge-bust" id="right-sub"></div>
+            <div class="black-overlay"></div>
+
             <div class="content-area">
                 <div class="upload-ui">
-                    <label class="sf-btn">배경 이미지<input type="file" accept="image/*"></label>
-                    <label class="sf-btn">서브 이미지<input type="file" accept="image/*"></label>
+                    <label class="sf-btn">배경 이미지<input type="file" accept="image/*" onchange="loadImage(event, 'right-bg')"></label>
+                    <label class="sf-btn">서브 이미지<input type="file" accept="image/*" onchange="loadImage(event, 'right-sub')"></label>
                 </div>
                 <div class="profile-temp-box">
-                    <h3 class="sf-title">PROFILE_DATA // RIGHT</h3>
-                    <p class="sf-text">여기에 오른쪽 캐릭터의 세부 프로필과 서사가 입력될 예정입니다. 대기 중...</p>
+                    <h3 class="sf-title">PROFILE_DATA // 02</h3>
+                    <p class="sf-text" contenteditable="true">오른쪽 캐릭터의 서사가 위치할 공간입니다.<br>하단으로 텍스트가 자연스럽게 이어지도록 설계했습니다.<br>모든 텍스트는 클릭 즉시 수정할 수 있습니다.</p>
                 </div>
-            </div>
-
-            <!-- 끝자락 흉상 영역 -->
-            <div class="edge-bust">
-                <div class="image-placeholder"></div>
-                <div class="black-overlay"></div>
             </div>
         </div>
 
     </div>
+
+    <!-- 이미지 업로드를 처리하는 오타쿠 프론트엔드의 영혼이 담긴 자바스크립트 -->
+    <script>
+        function loadImage(event, targetId) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // 브라우저 내부에서만 도는 FileReader API 사용 (서버 전송 없음, 즉각 반영)
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const targetElement = document.getElementById(targetId);
+                targetElement.style.backgroundImage = `url('${e.target.result}')`;
+                
+                // 업로드 성공 시 콘솔에 프론트엔드의 사심 담긴 메시지 출력
+                console.log(`[SYSTEM] ${targetId} 이미지 렌더링 완료. 완벽한 비주얼입니다, 보스.`);
+            };
+            reader.readAsDataURL(file);
+        }
+    </script>
 </body>
 </html>
