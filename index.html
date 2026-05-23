@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SF PAIR PROFILE FRAME</title>
+    <!-- Pretendard 폰트 로드 -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 추후 캡처(이미지 내보내기)의 기준이 될 메인 캔버스 -->
+    <div class="capture-canvas" id="export-area">
+        
+        <!-- 중앙: 페어명 (레이어 최상단) -->
+        <div class="center-pair-name">
+            <input type="text" placeholder="PAIR NAME" spellcheck="false">
+            <div class="sf-line"></div>
+        </div>
+
+        <!-- 왼쪽 캐릭터 영역 -->
+        <div class="character-section left">
+            <!-- 끝자락 흉상 영역 -->
+            <div class="edge-bust">
+                <div class="image-placeholder"></div>
+                <div class="black-overlay"></div>
+            </div>
+            
+            <!-- 컨텐츠 영역 (임시 텍스트 및 UI) -->
+            <div class="content-area">
+                <div class="upload-ui">
+                    <label class="sf-btn">배경 이미지<input type="file" accept="image/*"></label>
+                    <label class="sf-btn">서브 이미지<input type="file" accept="image/*"></label>
+                </div>
+                <div class="profile-temp-box">
+                    <h3 class="sf-title">PROFILE_DATA // LEFT</h3>
+                    <p class="sf-text">여기에 왼쪽 캐릭터의 세부 프로필과 서사가 입력될 예정입니다. 대기 중...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 오른쪽 캐릭터 영역 -->
+        <div class="character-section right">
+            <!-- 컨텐츠 영역 (임시 텍스트 및 UI) -->
+            <div class="content-area">
+                <div class="upload-ui">
+                    <label class="sf-btn">배경 이미지<input type="file" accept="image/*"></label>
+                    <label class="sf-btn">서브 이미지<input type="file" accept="image/*"></label>
+                </div>
+                <div class="profile-temp-box">
+                    <h3 class="sf-title">PROFILE_DATA // RIGHT</h3>
+                    <p class="sf-text">여기에 오른쪽 캐릭터의 세부 프로필과 서사가 입력될 예정입니다. 대기 중...</p>
+                </div>
+            </div>
+
+            <!-- 끝자락 흉상 영역 -->
+            <div class="edge-bust">
+                <div class="image-placeholder"></div>
+                <div class="black-overlay"></div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>
