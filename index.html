@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SF PAIR PROFILE - GEOMETRIC HUD</title>
+    <title>SF PAIR PROFILE - MASTERPIECE EDITION</title>
     <!-- Pretendard 폰트 로드 -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <!-- html2canvas 라이브러리 로드 (이미지 내보내기용) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
+            /* 초기 테마 컬러 */
             --theme-a: #00f0ff;
             --theme-b: #ff0055;
             --sf-text: #ffffff;
             --text-dim: rgba(255, 255, 255, 0.4);
-            --line-color: rgba(255, 255, 255, 0.1);
+            --line-color: rgba(255, 255, 255, 0.15);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
@@ -24,10 +27,8 @@
         /* --- 레이아웃 래퍼 --- */
         .panel-wrapper { position: relative; height: 100vh; }
         .wrap-sub { width: 11vw; background-color: #000; position: relative; overflow: hidden; }
-        .wrap-bg { width: 39vw; }
-        
-        #wrap-bg-a { background: linear-gradient(to bottom, #020205 10%, var(--theme-a) 160%); }
-        #wrap-bg-b { background: linear-gradient(to bottom, #020205 10%, var(--theme-b) 160%); }
+        /* 보스의 지시대로 메인 배경은 심연의 순흑(Black)으로 고정 */
+        .wrap-bg { width: 39vw; background: #000; }
 
         /* --- 서브 및 메인 이미지 --- */
         .img-panel { width: 100%; height: 100%; background-size: cover; background-position: center top; transition: 0.5s ease; }
@@ -40,25 +41,38 @@
         }
 
         .img-main {
-            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 90%);
-            mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 90%);
+            /* 상단에서 하단으로 완전한 어둠 속으로 가라앉음 */
+            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%);
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%);
         }
 
-        /* 사이드바 버티컬 애니메이션 텍스트 */
+        /* --- 사이드바 버티컬 애니메이션 텍스트 (시인성 & 테마 연동 강화) --- */
         .vertical-ticker {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; align-items: center; justify-content: center; z-index: 2; pointer-events: none; overflow: hidden;
         }
         .vertical-text {
-            font-size: 8vh; font-weight: 900; text-transform: uppercase; white-space: nowrap;
-            color: transparent; -webkit-text-stroke: 1px rgba(255, 255, 255, 0.05); letter-spacing: 0.2em;
+            font-size: 8vh; font-weight: 900; text-transform: uppercase; white-space: nowrap; letter-spacing: 0.2em;
+            color: transparent; 
+            opacity: 0.7; /* 시인성 대폭 상향 */
         }
-        .wrap-sub.left .vertical-text { writing-mode: vertical-rl; transform: rotate(180deg); animation: scroll-up 20s linear infinite; }
-        .wrap-sub.right .vertical-text { writing-mode: vertical-rl; animation: scroll-down 20s linear infinite; }
+        
+        /* 테마 컬러 연동 및 강렬한 발광 효과 추가 */
+        .wrap-sub.left .vertical-text { 
+            writing-mode: vertical-rl; transform: rotate(180deg); animation: scroll-up 20s linear infinite;
+            -webkit-text-stroke: 1.5px var(--theme-a);
+            text-shadow: 0 0 15px var(--theme-a);
+        }
+        .wrap-sub.right .vertical-text { 
+            writing-mode: vertical-rl; animation: scroll-down 20s linear infinite;
+            -webkit-text-stroke: 1.5px var(--theme-b);
+            text-shadow: 0 0 15px var(--theme-b);
+        }
+        
         @keyframes scroll-up { 0% { transform: rotate(180deg) translateY(-50%); } 100% { transform: rotate(180deg) translateY(50%); } }
         @keyframes scroll-down { 0% { transform: translateY(50%); } 100% { transform: translateY(-50%); } }
 
-        /* --- SF 기하학적 장식 (크로스헤어 & 데코 라인) --- */
+        /* --- SF 기하학적 장식 --- */
         .sf-decor-line { position: absolute; z-index: 5; pointer-events: none; background: var(--line-color); }
         .decor-h { width: 100%; height: 1px; top: 8vh; }
         .decor-v { width: 1px; height: 100%; left: 50%; transform: translateX(-50%); opacity: 0.3; }
@@ -77,13 +91,16 @@
         .upload-hud {
             position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
             display: flex; align-items: center; gap: 8px; pointer-events: auto;
-            background: rgba(0,0,0,0.5); padding: 8px 15px; border-radius: 2px;
-            border: 1px solid var(--line-color); backdrop-filter: blur(4px);
+            background: rgba(0,0,0,0.7); padding: 8px 15px; border-radius: 4px;
+            border: 1px solid var(--line-color); backdrop-filter: blur(5px);
+            z-index: 100;
         }
-        .sf-btn { display: inline-flex; align-items: center; padding: 5px 8px; border: 1px solid transparent; background: transparent; color: var(--text-dim); font-size: 10px; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
-        .sf-btn:hover { color: #fff; border-bottom: 1px solid #fff; }
+        .sf-btn { display: inline-flex; align-items: center; padding: 5px 10px; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: #fff; font-size: 11px; font-weight:600; cursor: pointer; text-transform: uppercase; transition: 0.2s; border-radius: 2px; }
+        .sf-btn:hover { background: rgba(255,255,255,0.1); border-color: #fff; }
+        .sf-btn.export-btn { background: rgba(0, 240, 255, 0.1); border-color: rgba(0, 240, 255, 0.5); color: #00f0ff; margin-left: 10px; }
+        .sf-btn.export-btn:hover { background: rgba(0, 240, 255, 0.3); box-shadow: 0 0 10px rgba(0, 240, 255, 0.5); }
         .sf-btn input[type="file"], .sf-btn input[type="color"] { display: none; }
-        .color-circle { width: 8px; height: 8px; transform: rotate(45deg); display: inline-block; margin-right: 6px; }
+        .color-circle { width: 8px; height: 8px; transform: rotate(45deg); display: inline-block; margin-right: 6px; box-shadow: 0 0 5px currentColor; }
 
         /* --- 미학적 프로필 패널 --- */
         .profile-panel {
@@ -93,24 +110,17 @@
         .profile-panel.left { margin-left: 12vw; }
         .profile-panel.right { margin-right: 12vw; align-items: flex-end; }
 
-        /* [NEW] 해시태그 영역 */
-        .tag-group {
-            display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; width: 100%;
-        }
+        .tag-group { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; width: 100%; }
         .profile-panel.right .tag-group { justify-content: flex-end; }
         
         .sf-tag {
-            font-size: 11px; padding: 4px 10px; color: #fff;
-            border: 1px solid var(--line-color);
-            background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);
-            letter-spacing: 0.1em; outline: none;
-            /* 모서리가 살짝 잘린 기하학적 SF 디자인 */
+            font-size: 11px; padding: 4px 10px; color: #fff; border: 1px solid var(--line-color);
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); letter-spacing: 0.1em; outline: none;
             clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
         }
         .profile-panel.left .sf-tag { border-bottom: 2px solid var(--theme-a); }
         .profile-panel.right .sf-tag { border-bottom: 2px solid var(--theme-b); }
 
-        /* 코드네임 */
         .codename {
             font-size: 3.5vw; font-weight: 900; letter-spacing: 0.05em; text-transform: uppercase;
             margin-bottom: 30px; line-height: 1; outline: none; color: #fff;
@@ -118,222 +128,234 @@
         .profile-panel.left .codename { text-shadow: 0 0 20px var(--theme-a); }
         .profile-panel.right .codename { text-shadow: 0 0 20px var(--theme-b); text-align: right; }
 
-        /* [NEW] 데이터 그리드 (밑줄 삭제, 마름모 아이콘 추가) */
-        .stat-grid {
-            width: 100%; display: grid; gap: 14px 0;
-            grid-template-columns: 100px 1fr;
-            align-items: flex-start;
-        }
+        .stat-grid { width: 100%; display: grid; gap: 14px 0; grid-template-columns: 100px 1fr; align-items: flex-start; }
         .profile-panel.right .stat-grid { text-align: right; grid-template-columns: 1fr 100px; }
 
-        .stat-label {
-            font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
-            font-weight: 700; outline: none; position: relative;
-        }
-        /* 왼쪽 패널 마름모 (글자 왼쪽) */
+        .stat-label { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 700; outline: none; position: relative; }
         .profile-panel.left .stat-label { color: var(--theme-a); padding-left: 18px; }
-        .profile-panel.left .stat-label::before {
-            content: ''; position: absolute; left: 0; top: 4px;
-            width: 6px; height: 6px; background: var(--theme-a); transform: rotate(45deg);
-            box-shadow: 0 0 5px var(--theme-a);
-        }
-        /* 오른쪽 패널 마름모 (글자 오른쪽 대칭) */
+        .profile-panel.left .stat-label::before { content: ''; position: absolute; left: 0; top: 4px; width: 6px; height: 6px; background: var(--theme-a); transform: rotate(45deg); box-shadow: 0 0 5px var(--theme-a); }
         .profile-panel.right .stat-label { color: var(--theme-b); padding-right: 18px; }
-        .profile-panel.right .stat-label::after {
-            content: ''; position: absolute; right: 0; top: 4px;
-            width: 6px; height: 6px; background: var(--theme-b); transform: rotate(45deg);
-            box-shadow: 0 0 5px var(--theme-b);
-        }
+        .profile-panel.right .stat-label::after { content: ''; position: absolute; right: 0; top: 4px; width: 6px; height: 6px; background: var(--theme-b); transform: rotate(45deg); box-shadow: 0 0 5px var(--theme-b); }
 
-        .stat-value {
-            font-size: 14px; color: #e2e8f0; font-weight: 300; line-height: 1.6; word-break: keep-all; outline: none;
-        }
+        .stat-value { font-size: 14px; color: #e2e8f0; font-weight: 300; line-height: 1.6; word-break: keep-all; outline: none; }
 
-        /* --- [NEW] 중앙 페어명 & 서브타이틀 (크기 축소, 은은한 효과) --- */
+        /* --- 중앙 페어명 & 서브타이틀 --- */
         .center-pair-hud {
             position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
-            text-align: center; width: 40vw; pointer-events: auto;
-            display: flex; flex-direction: column; align-items: center;
+            text-align: center; width: 40vw; pointer-events: auto; display: flex; flex-direction: column; align-items: center;
         }
-        
         .center-pair-name {
-            display: inline-block; width: 100%;
-            background: transparent; border: none; color: #fff;
-            font-size: 1.8vw; /* 크기 대폭 축소 */
-            font-weight: 300; /* 얇고 세련된 폰트 웨이트 */
-            text-align: center; letter-spacing: 0.6em; outline: none;
-            text-transform: uppercase;
-            /* 딥 다크 그림자 삭제, 은은한 자체 발광만 남김 */
-            text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
-            margin-bottom: 8px;
+            display: inline-block; width: 100%; background: transparent; border: none; color: #fff;
+            font-size: 1.8vw; font-weight: 300; text-align: center; letter-spacing: 0.6em; outline: none;
+            text-transform: uppercase; text-shadow: 0 0 15px rgba(255, 255, 255, 0.4); margin-bottom: 8px;
         }
-
         .center-pair-sub {
-            display: inline-block; width: 80%;
-            font-size: 10px; color: var(--theme-a); /* 픽업된 테마색이 은은하게 섞이도록 유도 가능 */
+            display: inline-block; width: 80%; font-size: 10px; color: #fff; opacity: 0.6;
             letter-spacing: 0.4em; text-transform: uppercase; font-weight: 400; outline: none;
-            opacity: 0.8;
         }
-        
-        /* 중앙 타겟팅 UI 장식 */
         .center-target-ui {
-            width: 30px; height: 30px; border: 1px solid var(--line-color);
-            border-radius: 50%; position: absolute; top: -40px; left: 50%; transform: translateX(-50%);
-            display: flex; align-items: center; justify-content: center; pointer-events: none;
+            width: 30px; height: 30px; border: 1px solid var(--line-color); border-radius: 50%; position: absolute; top: -40px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; pointer-events: none;
         }
         .center-target-ui::after { content: ''; width: 4px; height: 4px; background: #fff; border-radius: 50%; }
-
     </style>
 </head>
 <body>
+    <!-- 캡처 대상 영역 -->
     <div class="capture-canvas" id="export-area">
-        
-        <!-- 기하학적 배경 장식 -->
         <div class="sf-decor-line decor-h"></div>
         <div class="sf-decor-line decor-v"></div>
 
-        <!-- [LAYER 1] 4패널 & 애니메이션 -->
         <div class="panel-wrapper wrap-sub left">
             <div class="img-panel img-sub" id="panel-sub-a"></div>
             <div class="vertical-ticker"><div class="vertical-text" id="vert-text-a">ALPHA</div></div>
         </div>
-        
         <div class="panel-wrapper wrap-bg" id="wrap-bg-a">
             <div class="img-panel img-main" id="panel-bg-a"></div>
         </div>
-        
         <div class="panel-wrapper wrap-bg" id="wrap-bg-b">
             <div class="img-panel img-main" id="panel-bg-b"></div>
         </div>
-        
         <div class="panel-wrapper wrap-sub right">
             <div class="img-panel img-sub" id="panel-sub-b"></div>
             <div class="vertical-ticker"><div class="vertical-text" id="vert-text-b">OMEGA</div></div>
         </div>
 
-        <!-- [LAYER 2] 데이터 인터페이스 레이어 -->
         <div class="interface-layer">
-            
-            <!-- 상단 십자선 (좌우) -->
             <div class="crosshair" style="top: 8vh; left: 11vw; transform: translate(-50%, -50%);"></div>
             <div class="crosshair" style="top: 8vh; right: 11vw; transform: translate(50%, -50%);"></div>
 
-            <!-- 상단 컨트롤 패널 -->
-            <div class="upload-hud">
-                <label class="sf-btn">
+            <!-- 상단 컨트롤 패널 (이 부분은 캡처 시 자동 숨김 처리됩니다) -->
+            <div class="upload-hud" id="hud-controls">
+                <label class="sf-btn" style="border: none; padding-left:0;">
                     <span class="color-circle" style="background:var(--theme-a)" id="circle-a"></span> COLOR A
-                    <input type="color" value="#00f0ff" onchange="updateTheme(event, 'a')">
+                    <input type="color" id="color-picker-a" value="#00f0ff" onchange="updateTheme(event, 'a')">
                 </label>
-                <label class="sf-btn">Sub <input type="file" accept="image/*" onchange="loadImage(event, 'panel-sub-a')"></label>
-                <label class="sf-btn">Bg <input type="file" accept="image/*" onchange="loadImage(event, 'panel-bg-a')"></label>
+                <label class="sf-btn">Sub A<input type="file" accept="image/*" onchange="loadImage(event, 'panel-sub-a')"></label>
+                <label class="sf-btn">Bg A<input type="file" accept="image/*" onchange="loadImage(event, 'panel-bg-a')"></label>
                 <span style="color:var(--text-dim); margin: 0 10px;">|</span>
-                <label class="sf-btn">Bg <input type="file" accept="image/*" onchange="loadImage(event, 'panel-bg-b')"></label>
-                <label class="sf-btn">Sub <input type="file" accept="image/*" onchange="loadImage(event, 'panel-sub-b')"></label>
-                <label class="sf-btn">
+                <label class="sf-btn">Bg B<input type="file" accept="image/*" onchange="loadImage(event, 'panel-bg-b')"></label>
+                <label class="sf-btn">Sub B<input type="file" accept="image/*" onchange="loadImage(event, 'panel-sub-b')"></label>
+                <label class="sf-btn" style="border: none;">
                     <span class="color-circle" style="background:var(--theme-b)" id="circle-b"></span> COLOR B
-                    <input type="color" value="#ff0055" onchange="updateTheme(event, 'b')">
+                    <input type="color" id="color-picker-b" value="#ff0055" onchange="updateTheme(event, 'b')">
                 </label>
+                <!-- 이미지 내보내기 버튼 -->
+                <button class="sf-btn export-btn" onclick="exportImage()">[ EXPORT TO IMAGE ]</button>
             </div>
 
-            <!-- 프로필 A (왼쪽) -->
+            <!-- 프로필 A -->
             <div class="profile-panel left">
-                <!-- 해시태그 영역 -->
                 <div class="tag-group">
-                    <div class="sf-tag" contenteditable="true" spellcheck="false">#TAG_WORD_01</div>
-                    <div class="sf-tag" contenteditable="true" spellcheck="false">#KEYWORD</div>
-                    <div class="sf-tag" contenteditable="true" spellcheck="false">#STATUS_ALIVE</div>
+                    <div class="sf-tag editable-text" id="tag-a-1" contenteditable="true" spellcheck="false">#TAG_WORD_01</div>
+                    <div class="sf-tag editable-text" id="tag-a-2" contenteditable="true" spellcheck="false">#KEYWORD</div>
+                    <div class="sf-tag editable-text" id="tag-a-3" contenteditable="true" spellcheck="false">#STATUS_ALIVE</div>
                 </div>
-
-                <div class="codename" id="codename-input-a" contenteditable="true" spellcheck="false" oninput="syncText('a')">ALPHA</div>
-                
+                <div class="codename editable-text" id="codename-input-a" contenteditable="true" spellcheck="false" oninput="syncText('a')">ALPHA</div>
                 <div class="stat-grid">
-                    <div class="stat-label" contenteditable="true" spellcheck="false">NAME</div>
-                    <div class="stat-value" contenteditable="true" spellcheck="false">이름 입력란</div>
-                    
-                    <div class="stat-label" contenteditable="true" spellcheck="false">AGE</div>
-                    <div class="stat-value" contenteditable="true" spellcheck="false">나이 입력</div>
-                    
-                    <div class="stat-label" contenteditable="true" spellcheck="false">NATION</div>
-                    <div class="stat-value" contenteditable="true" spellcheck="false">국적 입력</div>
-                    
-                    <div class="stat-label" contenteditable="true" spellcheck="false">AFFILIATION</div>
-                    <div class="stat-value" contenteditable="true" spellcheck="false">소속 입력</div>
-                    
-                    <div class="stat-label" contenteditable="true" spellcheck="false">PERSONALITY</div>
-                    <div class="stat-value" contenteditable="true" spellcheck="false">성격 묘사. 텍스트가 아무리 길어져도 레이아웃이 무너지지 않습니다.</div>
-                    
-                    <div class="stat-label" contenteditable="true" spellcheck="false">BACKGROUND</div>
-                    <div class="stat-value" contenteditable="true" spellcheck="false">세부 설정 및 과거사. 마름모 아이콘과 투명한 배경이 데이터베이스의 느낌을 극대화합니다.</div>
-                    
-                    <div class="stat-label" contenteditable="true" spellcheck="false">ETC</div>
-                    <div class="stat-value" contenteditable="true" spellcheck="false">추가 메모</div>
+                    <div class="stat-label editable-text" id="lbl-a-1" contenteditable="true" spellcheck="false">NAME</div>
+                    <div class="stat-value editable-text" id="val-a-1" contenteditable="true" spellcheck="false">이름 입력란</div>
+                    <div class="stat-label editable-text" id="lbl-a-2" contenteditable="true" spellcheck="false">AGE</div>
+                    <div class="stat-value editable-text" id="val-a-2" contenteditable="true" spellcheck="false">나이 입력</div>
+                    <div class="stat-label editable-text" id="lbl-a-3" contenteditable="true" spellcheck="false">NATION</div>
+                    <div class="stat-value editable-text" id="val-a-3" contenteditable="true" spellcheck="false">국적 입력</div>
+                    <div class="stat-label editable-text" id="lbl-a-4" contenteditable="true" spellcheck="false">AFFILIATION</div>
+                    <div class="stat-value editable-text" id="val-a-4" contenteditable="true" spellcheck="false">소속 입력</div>
+                    <div class="stat-label editable-text" id="lbl-a-5" contenteditable="true" spellcheck="false">PERSONALITY</div>
+                    <div class="stat-value editable-text" id="val-a-5" contenteditable="true" spellcheck="false">성격 묘사</div>
+                    <div class="stat-label editable-text" id="lbl-a-6" contenteditable="true" spellcheck="false">BACKGROUND</div>
+                    <div class="stat-value editable-text" id="val-a-6" contenteditable="true" spellcheck="false">세부 설정 및 과거사.</div>
+                    <div class="stat-label editable-text" id="lbl-a-7" contenteditable="true" spellcheck="false">ETC</div>
+                    <div class="stat-value editable-text" id="val-a-7" contenteditable="true" spellcheck="false">추가 메모</div>
                 </div>
             </div>
 
-            <!-- 프로필 B (오른쪽) -->
+            <!-- 프로필 B -->
             <div class="profile-panel right">
-                <!-- 해시태그 영역 (우측 정렬) -->
                 <div class="tag-group">
-                    <div class="sf-tag" contenteditable="true" spellcheck="false">#CLASSIFIED</div>
-                    <div class="sf-tag" contenteditable="true" spellcheck="false">#KEYWORD</div>
-                    <div class="sf-tag" contenteditable="true" spellcheck="false">#TAG_WORD_02</div>
+                    <div class="sf-tag editable-text" id="tag-b-1" contenteditable="true" spellcheck="false">#CLASSIFIED</div>
+                    <div class="sf-tag editable-text" id="tag-b-2" contenteditable="true" spellcheck="false">#KEYWORD</div>
+                    <div class="sf-tag editable-text" id="tag-b-3" contenteditable="true" spellcheck="false">#TAG_WORD_02</div>
                 </div>
-
-                <div class="codename" id="codename-input-b" contenteditable="true" spellcheck="false" oninput="syncText('b')">OMEGA</div>
-                
+                <div class="codename editable-text" id="codename-input-b" contenteditable="true" spellcheck="false" oninput="syncText('b')">OMEGA</div>
                 <div class="stat-grid">
-                    <div class="stat-value" contenteditable="true" spellcheck="false">이름 입력란</div>
-                    <div class="stat-label" contenteditable="true" spellcheck="false">NAME</div>
-                    
-                    <div class="stat-value" contenteditable="true" spellcheck="false">나이 입력</div>
-                    <div class="stat-label" contenteditable="true" spellcheck="false">AGE</div>
-                    
-                    <div class="stat-value" contenteditable="true" spellcheck="false">국적 입력</div>
-                    <div class="stat-label" contenteditable="true" spellcheck="false">NATION</div>
-                    
-                    <div class="stat-value" contenteditable="true" spellcheck="false">소속 입력</div>
-                    <div class="stat-label" contenteditable="true" spellcheck="false">AFFILIATION</div>
-                    
-                    <div class="stat-value" contenteditable="true" spellcheck="false">성격 묘사. 대칭을 이루는 구조가 시각적 안정감을 부여합니다.</div>
-                    <div class="stat-label" contenteditable="true" spellcheck="false">PERSONALITY</div>
-                    
-                    <div class="stat-value" contenteditable="true" spellcheck="false">세부 설정 및 과거사. 오른쪽에 위치한 마름모 에셋이 테마 컬러로 빛납니다.</div>
-                    <div class="stat-label" contenteditable="true" spellcheck="false">BACKGROUND</div>
-                    
-                    <div class="stat-value" contenteditable="true" spellcheck="false">추가 메모</div>
-                    <div class="stat-label" contenteditable="true" spellcheck="false">ETC</div>
+                    <div class="stat-value editable-text" id="val-b-1" contenteditable="true" spellcheck="false">이름 입력란</div>
+                    <div class="stat-label editable-text" id="lbl-b-1" contenteditable="true" spellcheck="false">NAME</div>
+                    <div class="stat-value editable-text" id="val-b-2" contenteditable="true" spellcheck="false">나이 입력</div>
+                    <div class="stat-label editable-text" id="lbl-b-2" contenteditable="true" spellcheck="false">AGE</div>
+                    <div class="stat-value editable-text" id="val-b-3" contenteditable="true" spellcheck="false">국적 입력</div>
+                    <div class="stat-label editable-text" id="lbl-b-3" contenteditable="true" spellcheck="false">NATION</div>
+                    <div class="stat-value editable-text" id="val-b-4" contenteditable="true" spellcheck="false">소속 입력</div>
+                    <div class="stat-label editable-text" id="lbl-b-4" contenteditable="true" spellcheck="false">AFFILIATION</div>
+                    <div class="stat-value editable-text" id="val-b-5" contenteditable="true" spellcheck="false">성격 묘사</div>
+                    <div class="stat-label editable-text" id="lbl-b-5" contenteditable="true" spellcheck="false">PERSONALITY</div>
+                    <div class="stat-value editable-text" id="val-b-6" contenteditable="true" spellcheck="false">세부 설정 및 과거사.</div>
+                    <div class="stat-label editable-text" id="lbl-b-6" contenteditable="true" spellcheck="false">BACKGROUND</div>
+                    <div class="stat-value editable-text" id="val-b-7" contenteditable="true" spellcheck="false">추가 메모</div>
+                    <div class="stat-label editable-text" id="lbl-b-7" contenteditable="true" spellcheck="false">ETC</div>
                 </div>
             </div>
 
-            <!-- 중앙 하단 페어명 & 서브타이틀 -->
+            <!-- 중앙 하단 페어명 -->
             <div class="center-pair-hud">
-                <div class="center-target-ui"></div> <!-- 기하학적 원형 장식 -->
-                <div class="center-pair-name" contenteditable="true" spellcheck="false">PAIR CONNECTION</div>
-                <div class="center-pair-sub" contenteditable="true" spellcheck="false" style="color: var(--text-dim);">ENTER YOUR SUBTITLE OR RELATIONSHIP STATUS HERE</div>
+                <div class="center-target-ui"></div>
+                <div class="center-pair-name editable-text" id="pair-main" contenteditable="true" spellcheck="false">PAIR CONNECTION</div>
+                <div class="center-pair-sub editable-text" id="pair-sub" contenteditable="true" spellcheck="false">ENTER YOUR SUBTITLE OR RELATIONSHIP STATUS HERE</div>
             </div>
-
         </div>
     </div>
 
     <script>
-        function loadImage(event, targetId) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (e) => { document.getElementById(targetId).style.backgroundImage = `url('${e.target.result}')`; };
-            reader.readAsDataURL(file);
+        // --- 1. 코어 시스템: 데이터 저장 및 불러오기 (Local Storage) ---
+        function saveToLocal(key, value) {
+            try { localStorage.setItem(key, value); } 
+            catch (e) { console.warn("[SYSTEM] 로컬 스토리지 한계 도달 (고해상도 이미지 용량 제한)."); }
         }
 
-        function updateTheme(event, target) {
-            const color = event.target.value;
-            document.documentElement.style.setProperty(`--theme-${target}`, color);
-            document.getElementById(`circle-${target}`).style.background = color;
-        }
+        // 모든 텍스트 필드에 실시간 저장 이벤트 부여
+        document.querySelectorAll('.editable-text').forEach(el => {
+            el.addEventListener('input', () => saveToLocal('text_' + el.id, el.innerHTML));
+        });
 
+        // 텍스트, 색상, 사이드 애니메이션 동기화
         function syncText(target) {
             let text = document.getElementById(`codename-input-${target}`).innerText.trim().toUpperCase();
             if (text === '') text = 'UNKNOWN';
             document.getElementById(`vert-text-${target}`).innerText = text;
+        }
+
+        function updateTheme(event, target) {
+            const color = event.target.value;
+            applyTheme(target, color);
+            saveToLocal(`theme_${target}`, color);
+        }
+
+        function applyTheme(target, color) {
+            document.documentElement.style.setProperty(`--theme-${target}`, color);
+            document.getElementById(`circle-${target}`).style.background = color;
+            document.getElementById(`color-picker-${target}`).value = color;
+        }
+
+        // 이미지 로드 및 Base64 변환 저장
+        function loadImage(event, targetId) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => { 
+                const dataUrl = e.target.result;
+                document.getElementById(targetId).style.backgroundImage = `url('${dataUrl}')`; 
+                saveToLocal('img_' + targetId, dataUrl); // 로컬에 이미지 저장
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 사이트 최초 접속 시 저장된 데이터 복구
+        window.onload = () => {
+            // 텍스트 복구
+            document.querySelectorAll('.editable-text').forEach(el => {
+                const savedText = localStorage.getItem('text_' + el.id);
+                if (savedText) el.innerHTML = savedText;
+            });
+            // 코드네임 -> 사이드바 텍스트 동기화 재실행
+            syncText('a'); syncText('b');
+            
+            // 테마색 복구
+            const savedThemeA = localStorage.getItem('theme_a');
+            if (savedThemeA) applyTheme('a', savedThemeA);
+            const savedThemeB = localStorage.getItem('theme_b');
+            if (savedThemeB) applyTheme('b', savedThemeB);
+
+            // 이미지 복구
+            ['panel-sub-a', 'panel-bg-a', 'panel-bg-b', 'panel-sub-b'].forEach(id => {
+                const savedImg = localStorage.getItem('img_' + id);
+                if (savedImg) document.getElementById(id).style.backgroundImage = `url('${savedImg}')`;
+            });
+            console.log("[SYSTEM] 보스의 이전 작업 데이터를 성공적으로 복원했습니다.");
+        };
+
+        // --- 2. 이미지 내보내기 (Export to Image) ---
+        function exportImage() {
+            const hud = document.getElementById('hud-controls');
+            // 캡처 화면에 버튼 UI가 나오지 않도록 임시로 숨김
+            hud.style.display = 'none'; 
+            
+            console.log("[SYSTEM] 이미지 렌더링 시퀀스 가동...");
+
+            // html2canvas 실행 (1920x1080 꽉 차게 캡처)
+            html2canvas(document.getElementById('export-area'), {
+                backgroundColor: "#000000",
+                scale: 2, // 고해상도 처리를 위해 스케일업
+                useCORS: true // 외부 이미지 허용
+            }).then(canvas => {
+                // 다운로드 링크 생성
+                const link = document.createElement('a');
+                link.download = 'SF_PAIR_PROFILE_BOSSEDITION.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                // 버튼 UI 복구
+                hud.style.display = 'flex';
+                console.log("[SYSTEM] 이미지 추출 완료. 보스의 아티팩트가 완성되었습니다.");
+            });
         }
     </script>
 </body>
