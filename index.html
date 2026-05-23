@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SF PAIR PROFILE - FOUR PANELS</title>
-    <!-- Pretendard 폰트 로드 (고정) -->
+    <title>SF PAIR PROFILE - DEEP FADE EDITION</title>
+    <!-- Pretendard 폰트 로드 -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
         :root {
-            /* 네온 색상 상수 */
-            --neon-cyan: #00f0ff;
-            --neon-pink: #ff0055;
+            /* JS로 제어될 캐릭터 퍼스널 컬러 (초기값) */
+            --theme-a: #00f0ff;
+            --theme-b: #ff0055;
+            
             --sf-text: #ffffff;
             --text-dim: rgba(255, 255, 255, 0.7);
-            /* 글래스모피즘 배경 */
-            --glass-bg: rgba(0, 0, 0, 0.5);
+            --glass-bg: rgba(0, 0, 0, 0.4);
             --glass-border: rgba(255, 255, 255, 0.1);
         }
 
@@ -22,84 +22,110 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Pretendard', sans-serif; /* 폰트 고정 */
+            font-family: 'Pretendard', sans-serif;
         }
 
         body {
             background-color: #000;
-            overflow: hidden; /* 스크롤 불허, 이미지 꽉 차게 */
+            overflow: hidden;
             color: var(--sf-text);
             width: 100vw;
             height: 100vh;
         }
 
-        /* 메인 캡처 캔버스 */
         .capture-canvas {
             position: relative;
             width: 100%;
             height: 100%;
-            display: flex; /* 수평 배치 */
+            display: flex;
             overflow: hidden;
+            background: #000;
         }
 
-        /* --- 이미지 패널 공통 스타일 --- */
-        .img-panel {
-            height: 100vh;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+        /* --- 레이아웃 래퍼 (배경색/테마색을 담당) --- */
+        .panel-wrapper {
             position: relative;
+            height: 100vh;
+        }
+
+        /* 서브 패널 래퍼 (가로폭 11vw 로 축소, 배경은 완전한 검정) */
+        .wrap-sub {
+            width: 11vw;
+            background-color: #000;
+            border-right: 1px solid rgba(255,255,255,0.05);
+        }
+        .wrap-sub.right {
+            border-right: none;
+            border-left: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* 메인 배경 래퍼 (가로폭 39vw 로 확장, 하단에 테마색이 깔림) */
+        .wrap-bg {
+            width: 39vw;
+            /* 위는 검정, 아래는 각 캐릭터의 테마색으로 빛나는 그라데이션 배경 */
+        }
+        #wrap-bg-a { background: linear-gradient(to bottom, #050508 30%, var(--theme-a) 120%); }
+        #wrap-bg-b { background: linear-gradient(to bottom, #050508 30%, var(--theme-b) 120%); }
+
+
+        /* --- 실제 이미지가 들어가는 컨테이너 --- */
+        .img-panel {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center top;
+            background-repeat: no-repeat;
             transition: background-image 0.5s ease;
         }
 
-        /* 이미지 업로드 전 임시 색상 */
-        #panel-sub-a { background-color: #0a0a0a; width: 15vw; } /* 서브이미지: 좁게 */
-        #panel-bg-a  { background-color: #121212; width: 35vw; }
-        #panel-bg-b  { background-color: #121212; width: 35vw; }
-        #panel-sub-b { background-color: #0a0a0a; width: 15vw; } /* 서브이미지: 좁게 */
-
-        /* 패널 사이 미세한 네온 라인 (미학적 디테일) */
-        .img-panel::after {
-            content: '';
-            position: absolute;
-            top: 0; right: 0;
-            width: 1px; height: 100%;
-            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.1), transparent);
+        /* 서브 이미지: 어둡게(opacity) + 상단에서 하단으로 투명화 */
+        .img-sub {
+            opacity: 0.35; /* 베이스 오퍼시티를 낮춰 다크한 무드 형성 */
+            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 10%, rgba(0,0,0,0) 80%);
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 10%, rgba(0,0,0,0) 80%);
         }
-        #panel-sub-a { border-right: 1px solid rgba(0, 240, 255, 0.2); }
-        #panel-sub-b { border-left: 1px solid rgba(255, 0, 85, 0.2); }
 
-        /* --- 텍스트 및 UI 레이어 (이미지 위에 뜸) --- */
+        /* 메인 배경 이미지: 상단에서 하단으로 투명화 (아래 깔린 테마색이 드러남) */
+        .img-main {
+            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 95%);
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 95%);
+        }
+
+
+        /* --- 텍스트 및 UI 레이어 (최상단) --- */
         .interface-layer {
             position: absolute;
             top: 0; left: 0;
             width: 100%; height: 100%;
             z-index: 10;
-            pointer-events: none; /* 클릭 이벤트는 자식 요소만 받음 */
+            pointer-events: none;
             display: flex;
-            justify-content: space-between; /* 양옆 배치 */
+            justify-content: space-between;
             padding: 60px;
         }
 
-        /* 업로드 UI 버튼 세팅 */
+        /* 상단 HUD (이미지 업로드 및 컬러 픽커) */
         .upload-hud {
             position: absolute;
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 10px;
-            pointer-events: auto; /* 버튼은 클릭 가능 */
-            background: rgba(0,0,0,0.5);
-            padding: 10px;
+            align-items: center;
+            gap: 8px;
+            pointer-events: auto;
+            background: rgba(0,0,0,0.6);
+            padding: 10px 15px;
+            border-radius: 4px;
             backdrop-filter: blur(5px);
             border: 1px solid var(--glass-border);
         }
 
         .sf-btn {
-            display: inline-block;
-            padding: 6px 12px;
-            border: 1px solid rgba(255,255,255,0.3);
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 10px;
+            border: 1px solid rgba(255,255,255,0.2);
             background: transparent;
             color: #fff;
             font-size: 11px;
@@ -107,188 +133,182 @@
             cursor: pointer;
             text-transform: uppercase;
             letter-spacing: 0.1em;
+            transition: 0.2s;
         }
-        .sf-btn:hover {
-            background: rgba(255,255,255,0.1);
-            border-color: #fff;
-        }
+        .sf-btn:hover { background: rgba(255,255,255,0.1); border-color: #fff; }
         .sf-btn input[type="file"] { display: none; }
+        
+        .sf-btn input[type="color"] {
+            width: 16px; height: 16px;
+            padding: 0; border: none;
+            background: transparent; cursor: pointer;
+            margin-right: 6px;
+        }
+
+        .hud-divider {
+            color: rgba(255,255,255,0.3);
+            margin: 0 5px;
+            font-size: 14px;
+        }
+
+
+        /* --- 미학적 프로필 패널 디자인 --- */
+        .profile-panel {
+            pointer-events: auto;
+            width: 22vw;
+            height: 65vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            position: relative;
+        }
+
+        .profile-box {
+            background: var(--glass-bg);
+            backdrop-filter: blur(8px);
+            padding: 35px;
+            border: 1px solid var(--glass-border);
+            position: relative;
+        }
+
+        .profile-box::before {
+            content: '';
+            position: absolute;
+            top: 0; width: 80px; height: 3px;
+        }
+
+        /* 프로필 위치 간격 조정 (서브패널 11vw + 여백 2vw = 13vw) */
+        .profile-panel.left { margin-left: 13vw; }
+        .profile-panel.left .profile-box {
+            border-left: 2px solid var(--theme-a);
+            box-shadow: -15px 0 30px rgba(0, 0, 0, 0.5);
+        }
+        .profile-panel.left .profile-box::before { left: 0; background-color: var(--theme-a); }
+        .profile-panel.left .sf-name { text-shadow: 0 0 15px var(--theme-a); }
+
+        .profile-panel.right { margin-right: 13vw; text-align: right; }
+        .profile-panel.right .profile-box {
+            border-right: 2px solid var(--theme-b);
+            box-shadow: 15px 0 30px rgba(0, 0, 0, 0.5);
+        }
+        .profile-panel.right .profile-box::before { right: 0; background-color: var(--theme-b); }
+        .profile-panel.right .sf-name { text-shadow: 0 0 15px var(--theme-b); }
+
+
+        /* 텍스트 스타일링 */
+        .sf-id { font-size: 11px; color: var(--text-dim); letter-spacing: 0.3em; margin-bottom: 10px; text-transform: uppercase; }
+        .sf-name { font-size: 32px; font-weight: 800; color: #fff; margin-bottom: 20px; letter-spacing: 0.1em; }
+        .sf-desc { font-size: 15px; line-height: 1.8; color: #d1d5db; font-weight: 300; word-break: keep-all; }
+        .sf-desc::-webkit-scrollbar { display: none; }
+        .sf-desc { -ms-overflow-style: none; scrollbar-width: none; }
 
 
         /* --- 중앙 하단 페어명 --- */
         .center-pair-hud {
             position: absolute;
-            bottom: 50px;
+            bottom: 60px;
             left: 50%;
             transform: translateX(-50%);
             text-align: center;
             width: 50vw;
             pointer-events: auto;
         }
-
         .center-pair-hud input {
-            background: transparent;
-            border: none;
-            color: #fff;
-            font-size: 3.2vw;
-            font-weight: 900;
-            text-align: center;
-            letter-spacing: 0.4em;
-            outline: none;
-            text-shadow: 0 0 15px rgba(255,255,255,0.5), 0 0 30px rgba(0,0,0,1);
-            width: 100%;
-            text-transform: uppercase;
+            background: transparent; border: none; color: #fff;
+            font-size: 3.5vw; font-weight: 900; text-align: center;
+            letter-spacing: 0.4em; outline: none;
+            text-shadow: 0 0 20px rgba(255,255,255,0.3), 0 5px 30px rgba(0,0,0,1);
         }
-
-
-        /* --- 미학적 프로필 패널 디자인 --- */
-        .profile-panel {
-            pointer-events: auto; /* 텍스트 수정 가능 */
-            width: 20vw; /* 적절한 너비 */
-            height: 60vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end; /* 하단 정렬 */
-            position: relative;
-        }
-
-        /* 글래스모피즘 배경 박스 */
-        .profile-box {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            padding: 30px;
-            border: 1px solid var(--glass-border);
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* 프로필 포인트 네온 라인 디테일 */
-        .profile-box::before {
-            content: '';
-            position: absolute;
-            top: 0; width: 60px; height: 2px;
-        }
-
-        /* 왼쪽 캐릭터 프로필: 서브 A와 가깝게, 간격을 둠 */
-        .profile-panel.left {
-            margin-left: 17vw; /* 서브패널(15vw) + 간격(2vw) */
-        }
-        .profile-panel.left .profile-box {
-            border-left: 3px solid var(--neon-cyan);
-            box-shadow: -10px 0 20px rgba(0, 240, 255, 0.1);
-        }
-        .profile-panel.left .profile-box::before { left: 0; background-color: var(--neon-cyan); }
-
-        /* 오른쪽 캐릭터 프로필: 서브 B와 가깝게, 간격을 둠 */
-        .profile-panel.right {
-            margin-right: 17vw; /* 서브패널(15vw) + 간격(2vw) */
-            text-align: right;
-        }
-        .profile-panel.right .profile-box {
-            border-right: 3px solid var(--neon-pink);
-            box-shadow: 10px 0 20px rgba(255, 0, 85, 0.1);
-        }
-        .profile-panel.right .profile-box::before { right: 0; background-color: var(--neon-pink); }
-
-
-        /* 텍스트 스타일링 */
-        .sf-id {
-            font-size: 11px;
-            color: var(--text-dim);
-            letter-spacing: 0.3em;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-        }
-
-        .sf-name {
-            font-size: 28px;
-            font-weight: 800;
-            color: #fff;
-            margin-bottom: 20px;
-            letter-spacing: 0.05em;
-        }
-        .profile-panel.left .sf-name { text-shadow: 0 0 10px var(--neon-cyan); }
-        .profile-panel.right .sf-name { text-shadow: 0 0 10px var(--neon-pink); }
-
-        .sf-desc {
-            font-size: 14px;
-            line-height: 1.8;
-            color: #d1d5db;
-            font-weight: 300;
-            word-break: keep-all;
-        }
-        
-        /* 스크롤바 숨기기 (텍스트가 많을 경우 대비) */
-        .sf-desc::-webkit-scrollbar { display: none; } 
-        .sf-desc { -ms-overflow-style: none; scrollbar-width: none; }
 
     </style>
 </head>
 <body>
     <div class="capture-canvas" id="export-area">
         
-        <!-- [LAYER 1] 4개의 이미지 패널 (호라이즌) -->
-        <div class="img-panel" id="panel-sub-a"></div>
-        <div class="img-panel" id="panel-bg-a"></div>
-        <div class="img-panel" id="panel-bg-b"></div>
-        <div class="img-panel" id="panel-sub-b"></div>
+        <!-- [LAYER 1] 4패널 구조: 래퍼(배경/테마) + 자식(이미지/마스크) -->
+        <div class="panel-wrapper wrap-sub left">
+            <div class="img-panel img-sub" id="panel-sub-a"></div>
+        </div>
+        
+        <div class="panel-wrapper wrap-bg" id="wrap-bg-a">
+            <div class="img-panel img-main" id="panel-bg-a"></div>
+        </div>
+        
+        <div class="panel-wrapper wrap-bg" id="wrap-bg-b">
+            <div class="img-panel img-main" id="panel-bg-b"></div>
+        </div>
+        
+        <div class="panel-wrapper wrap-sub right">
+            <div class="img-panel img-sub" id="panel-sub-b"></div>
+        </div>
 
-        <!-- [LAYER 2] 인터페이스 레이어 (HUD, 프로필) -->
+        <!-- [LAYER 2] 인터페이스 레이어 -->
         <div class="interface-layer">
             
-            <!-- 업로드 HUD (상단 중앙) -->
+            <!-- 상단 컨트롤 패널 -->
             <div class="upload-hud">
+                <label class="sf-btn"><input type="color" value="#00f0ff" onchange="updateTheme(event, '--theme-a')">테마 A</label>
                 <label class="sf-btn">Sub A<input type="file" accept="image/*" onchange="loadImage(event, 'panel-sub-a')"></label>
                 <label class="sf-btn">Bg A<input type="file" accept="image/*" onchange="loadImage(event, 'panel-bg-a')"></label>
-                <span style="color:rgba(255,255,255,0.3); size: 10px;">|</span>
+                
+                <span class="hud-divider">||</span>
+                
                 <label class="sf-btn">Bg B<input type="file" accept="image/*" onchange="loadImage(event, 'panel-bg-b')"></label>
                 <label class="sf-btn">Sub B<input type="file" accept="image/*" onchange="loadImage(event, 'panel-sub-b')"></label>
+                <label class="sf-btn"><input type="color" value="#ff0055" onchange="updateTheme(event, '--theme-b')">테마 B</label>
             </div>
 
-            <!-- 왼쪽 프로필 (서브 A 쪽) -->
+            <!-- 프로필 A -->
             <div class="profile-panel left">
                 <div class="profile-box">
-                    <div class="sf-id">Subject // Alpha</div>
+                    <div class="sf-id">Code // 01</div>
                     <div class="sf-name" contenteditable="true">CHARACTER A</div>
-                    <div class="sf-desc" contenteditable="true" style="max-height: 200px; overflow-y: auto;">
-                        여기에 캐릭터 A의 프로필을 입력하세요. 서브 이미지 패널 옆에 미학적인 간격을 두고 배치되었습니다.<br>글래스모피즘 박스와 네온 포인트가 근미래 분위기를 연출합니다.
+                    <div class="sf-desc" contenteditable="true" style="max-height: 250px; overflow-y: auto;">
+                        보스, 텍스트는 이곳에 입력됩니다.<br><br>
+                        서브 이미지는 칠흑 속에서 희미하게 투명화되어 가라앉고, 메인 배경 이미지는 테마 컬러 위로 부드럽게 녹아내립니다.<br>
+                        가장 감각적이고 미학적인 오타쿠의 캔버스가 준비되었습니다.
                     </div>
                 </div>
             </div>
 
-            <!-- 오른쪽 프로필 (서브 B 쪽) -->
+            <!-- 프로필 B -->
             <div class="profile-panel right">
                 <div class="profile-box">
-                    <div class="sf-id">Subject // Omega</div>
-                    <div class="sf-name" contenteditable="true" style="color: var(--neon-pink);">CHARACTER B</div>
-                    <div class="sf-desc" contenteditable="true" style="max-height: 200px; overflow-y: auto;">
-                        캐릭터 B의 데이터 공간입니다.<br>양쪽 프로필은 서로 대칭을 이루며 완벽한 균형을 맞춥니다.<br>클릭하여 내용을 수정하십시오.
+                    <div class="sf-id">Code // 02</div>
+                    <div class="sf-name" contenteditable="true">CHARACTER B</div>
+                    <div class="sf-desc" contenteditable="true" style="max-height: 250px; overflow-y: auto;">
+                        프로필 박스의 네온 포인트와 이름의 그림자 색상 역시 상단에서 선택한 테마 컬러와 100% 동기화되어 실시간으로 변합니다.<br><br>
+                        이것이 바로 디자인과 코드가 완벽하게 결합된 프론트엔드의 진수입니다.
                     </div>
                 </div>
             </div>
 
-            <!-- 중앙 하단 페어명 -->
+            <!-- 중앙 페어명 -->
             <div class="center-pair-hud">
-                <input type="text" placeholder="PAIR CONNECTION" spellcheck="false">
+                <input type="text" placeholder="PAIR NAME" spellcheck="false">
             </div>
 
         </div>
-
     </div>
 
     <script>
-        // 이미지 렌더링 함수 (로컬 파일 읽기)
+        // 이미지 렌더링
         function loadImage(event, targetId) {
             const file = event.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = function(e) {
-                const targetElement = document.getElementById(targetId);
-                targetElement.style.backgroundImage = `url('${e.target.result}')`;
-                console.log(`[SYSTEM] ${targetId} 데이터 로드 완료.`);
+                document.getElementById(targetId).style.backgroundImage = `url('${e.target.result}')`;
             };
             reader.readAsDataURL(file);
+        }
+
+        // 테마 컬러 실시간 동기화 (CSS 변수 업데이트)
+        function updateTheme(event, cssVar) {
+            const color = event.target.value;
+            // :root 에 선언된 변수를 덮어씌워 전체 테마색(그라데이션, 네온 포인트, 텍스트 그림자 등)을 일괄 변경
+            document.documentElement.style.setProperty(cssVar, color);
+            console.log(`[SYSTEM] ${cssVar} 퍼스널 컬러 업데이트 완료: ${color}`);
         }
     </script>
 </body>
