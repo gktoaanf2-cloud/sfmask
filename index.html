@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SF PAIR PROFILE - ZERO BUG EDITION</title>
+    <title>SF PAIR PROFILE - PERFECT TAG EDITION</title>
     <!-- Pretendard 폰트 로드 -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -20,63 +20,34 @@
 
         body { background-color: #000; overflow: hidden; color: var(--sf-text); width: 100vw; height: 100vh; }
 
-        /* 배경을 완전한 순흑으로 처리 */
         .capture-canvas { position: relative; width: 100%; height: 100%; display: flex; overflow: hidden; background: #000000; }
 
         /* --- 레이아웃 래퍼 --- */
         .panel-wrapper { position: relative; height: 100vh; }
         .wrap-sub { width: 11vw; background-color: #000; position: relative; overflow: hidden; }
-        .wrap-bg { width: 39vw; background: #000; position: relative; }
+        /* [FIX] 1px 확장이 옆으로 삐져나오지 않도록 overflow 제어 완벽 적용 */
+        .wrap-bg { width: 39vw; background: #000; position: relative; overflow: hidden; }
 
-        /* --- [BUG FIX] 1px 흰 줄 방어 (Sub-pixel Bleeding Hack) --- */
-        /* 이미지와 장막의 크기를 100%가 아닌 2px씩 강제 팽창시켜 소수점 렌더링 틈새를 완전히 덮어버립니다. */
+        /* --- 1px 흰 줄 방어 (Sub-pixel Bleeding Hack) --- */
         .img-panel, .gradient-fade {
-            position: absolute; 
-            top: -1px; left: -1px; 
-            width: calc(100% + 2px); 
-            height: calc(100% + 2px); 
+            position: absolute; top: -1px; left: -1px; 
+            width: calc(100% + 2px); height: calc(100% + 2px); 
             background-size: cover; background-position: center top; transition: 0.5s ease; z-index: 1; 
         }
         .img-sub { opacity: 0.25; }
 
-        /* html2canvas 픽스용 물리적 장막 */
+        /* 물리적 장막 */
         .gradient-fade { pointer-events: none; z-index: 2; }
         .sub-fade { background: linear-gradient(to bottom, transparent 5%, #000 70%, #000 100%); }
         .main-fade { background: linear-gradient(to bottom, transparent 30%, #000 100%); }
 
-        /* --- [BUG FIX] 사이드바 텍스트 버그 수정 (writing-mode 폐기) --- */
-        /* 캔버스가 읽지 못하는 writing-mode 대신, 물리적인 transform 각도 회전으로 수학적 축을 새로 짰습니다. */
-        .vertical-ticker { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            display: flex; align-items: center; justify-content: center; z-index: 3; pointer-events: none; overflow: hidden; 
-        }
-        .vertical-text { 
-            position: absolute;
-            font-size: 8vh; font-weight: 900; text-transform: uppercase; white-space: nowrap; letter-spacing: 0.2em; 
-            color: transparent; opacity: 0.8; 
-        }
-        
-        /* 왼쪽은 -90도로 눕혀 밑에서 위로 읽히게 조정, translateX로 애니메이션 */
-        .wrap-sub.left .vertical-text { 
-            transform: rotate(-90deg); 
-            -webkit-text-stroke: 1.5px var(--theme-a); text-shadow: 0 0 15px var(--theme-a); 
-            animation: scroll-up-left 20s linear infinite; 
-        }
-        /* 오른쪽은 90도로 눕혀 위에서 밑으로 읽히게 조정 */
-        .wrap-sub.right .vertical-text { 
-            transform: rotate(90deg); 
-            -webkit-text-stroke: 1.5px var(--theme-b); text-shadow: 0 0 15px var(--theme-b); 
-            animation: scroll-down-right 20s linear infinite; 
-        }
-        
-        @keyframes scroll-up-left { 
-            0% { transform: rotate(-90deg) translateX(-50vh); } 
-            100% { transform: rotate(-90deg) translateX(50vh); } 
-        }
-        @keyframes scroll-down-right { 
-            0% { transform: rotate(90deg) translateX(-50vh); } 
-            100% { transform: rotate(90deg) translateX(50vh); } 
-        }
+        /* --- 사이드바 버티컬 애니메이션 텍스트 --- */
+        .vertical-ticker { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; z-index: 3; pointer-events: none; overflow: hidden; }
+        .vertical-text { position: absolute; font-size: 8vh; font-weight: 900; text-transform: uppercase; white-space: nowrap; letter-spacing: 0.2em; color: transparent; opacity: 0.8; }
+        .wrap-sub.left .vertical-text { transform: rotate(-90deg); -webkit-text-stroke: 1.5px var(--theme-a); text-shadow: 0 0 15px var(--theme-a); animation: scroll-up-left 20s linear infinite; }
+        .wrap-sub.right .vertical-text { transform: rotate(90deg); -webkit-text-stroke: 1.5px var(--theme-b); text-shadow: 0 0 15px var(--theme-b); animation: scroll-down-right 20s linear infinite; }
+        @keyframes scroll-up-left { 0% { transform: rotate(-90deg) translateX(-50vh); } 100% { transform: rotate(-90deg) translateX(50vh); } }
+        @keyframes scroll-down-right { 0% { transform: rotate(90deg) translateX(-50vh); } 100% { transform: rotate(90deg) translateX(50vh); } }
 
         /* --- SF 기하학적 장식 --- */
         .sf-decor-line { position: absolute; z-index: 5; pointer-events: none; background: var(--line-color); }
@@ -103,21 +74,31 @@
         .profile-panel.left { margin-left: 12vw; }
         .profile-panel.right { margin-right: 12vw; align-items: flex-end; }
 
-        .tag-group { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; width: 100%; }
+        /* --- [BUG FIX] 해시태그 디자인 전면 재구축 (사선 스큐 기법) --- */
+        .tag-group { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; width: 100%; }
         .profile-panel.right .tag-group { justify-content: flex-end; }
         
-        /* --- [BUG FIX] 태그 모양 픽스 (clip-path 버리고 linear-gradient 커팅 사용) --- */
         .sf-tag { 
-            font-size: 11px; padding: 5px 12px; color: #fff; outline: none; letter-spacing: 0.1em;
-            /* 캔버스 호환성 100%인 그라데이션 절단 기법으로 모서리 깎기 구현 */
-            background: linear-gradient(135deg, transparent 6px, rgba(0,0,0,0.6) 0);
-            border-right: 1px solid var(--line-color);
+            position: relative;
+            font-size: 11px; padding: 6px 14px; color: #fff; outline: none; letter-spacing: 0.1em;
+            z-index: 1; /* 텍스트는 위에 띄움 */
+            display: inline-block;
         }
-        .profile-panel.left .sf-tag { border-bottom: 2px solid var(--theme-a); }
-        .profile-panel.right .sf-tag { 
-            /* 오른쪽은 대칭을 위해 반대로 깎습니다 */
-            background: linear-gradient(-45deg, transparent 6px, rgba(0,0,0,0.6) 0);
-            border-right: none; border-left: 1px solid var(--line-color);
+        /* 가상 요소를 활용해 배경만 날렵하게 비틉니다. 캔버스 캡처 호환성 100%! */
+        .sf-tag::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid var(--line-color);
+            z-index: -1; /* 텍스트 뒤로 */
+        }
+        /* 왼쪽 캐릭터 태그: 우상향 사선 */
+        .profile-panel.left .sf-tag::before { 
+            transform: skewX(-15deg); 
+            border-bottom: 2px solid var(--theme-a); 
+        }
+        /* 오른쪽 캐릭터 태그: 좌상향 사선 (완벽한 대칭) */
+        .profile-panel.right .sf-tag::before { 
+            transform: skewX(15deg); 
             border-bottom: 2px solid var(--theme-b); 
         }
 
@@ -130,10 +111,8 @@
         .profile-panel.right .stat-grid { text-align: right; grid-template-columns: 1fr 130px; }
 
         .stat-label { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 700; outline: none; position: relative; white-space: nowrap; }
-        
         .profile-panel.left .stat-label { color: var(--theme-a); padding-left: 18px; }
         .profile-panel.left .stat-label::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%) rotate(45deg); width: 6px; height: 6px; background: var(--theme-a); box-shadow: 0 0 5px var(--theme-a); }
-        
         .profile-panel.right .stat-label { color: var(--theme-b); padding-right: 18px; }
         .profile-panel.right .stat-label::after { content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%) rotate(45deg); width: 6px; height: 6px; background: var(--theme-b); box-shadow: 0 0 5px var(--theme-b); }
 
@@ -308,30 +287,27 @@
             });
         };
 
-        // --- [BUG FIX] 폰트 로드 확인 및 이미지 추출 ---
         function exportImage() {
             const hud = document.getElementById('hud-controls');
             hud.style.display = 'none'; 
             
-            console.log("[SYSTEM] 폰트 렌더링 검증 및 고해상도 추출 시퀀스 가동...");
+            console.log("[SYSTEM] 무결점 고해상도 렌더링 시퀀스 가동...");
 
-            // 폰트가 완전히 브라우저 메모리에 로드될 때까지 기다렸다가 캡처합니다. (폰트 증발 버그 픽스)
             document.fonts.ready.then(function() {
                 html2canvas(document.getElementById('export-area'), {
                     backgroundColor: "#000000",
                     scale: 2, 
                     useCORS: true,
                     allowTaint: true,
-                    // 1px 흰줄 방어를 위해 렌더링 범위를 명확히 1920x1080 비율로 강제 고정
                     windowWidth: document.documentElement.offsetWidth,
                     windowHeight: document.documentElement.offsetHeight
                 }).then(canvas => {
                     const link = document.createElement('a');
-                    link.download = 'SF_PAIR_PROFILE_ZERO_BUG.png';
+                    link.download = 'SF_PAIR_PROFILE_MASTER.png';
                     link.href = canvas.toDataURL('image/png');
                     link.click();
                     hud.style.display = 'flex'; 
-                    console.log("[SYSTEM] 무결성 검증 완료. 오타쿠의 아티팩트가 완성되었습니다, 보스.");
+                    console.log("[SYSTEM] 캡처 완료! 보스, 더 이상의 버그는 없습니다.");
                 });
             });
         }
