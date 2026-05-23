@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SF PAIR PROFILE - PERFECT EXPORT EDITION</title>
-    <!-- Pretendard 폰트 로드 -->
+    <title>SF PAIR PROFILE - PERFECT GRID EDITION</title>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-    <!-- html2canvas 라이브러리 로드 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
@@ -32,36 +30,16 @@
         .img-panel { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center top; transition: 0.5s ease; z-index: 1; }
         .img-sub { opacity: 0.25; }
 
-        /* --- [BUG FIX] 물리적 그라데이션 오버레이 장막 --- */
-        /* html2canvas가 mask-image를 무시하는 현상을 막기 위해, 실제 div 요소를 이미지 위에 덮어서 강제로 어둡게 만듭니다. */
-        .gradient-fade {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 2;
-        }
-        /* 서브 패널용 어둠 장막 (상단 5%부터 빠르게 어두워짐) */
+        /* 물리적 그라데이션 오버레이 장막 (html2canvas 버그 픽스용) */
+        .gradient-fade { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
         .sub-fade { background: linear-gradient(to bottom, transparent 5%, #000 70%, #000 100%); }
-        /* 메인 패널용 어둠 장막 (상단 30%부터 서서히 어두워짐) */
         .main-fade { background: linear-gradient(to bottom, transparent 30%, #000 100%); }
 
-
         /* --- 사이드바 버티컬 애니메이션 텍스트 --- */
-        .vertical-ticker {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; align-items: center; justify-content: center; z-index: 3; pointer-events: none; overflow: hidden;
-        }
-        .vertical-text {
-            font-size: 8vh; font-weight: 900; text-transform: uppercase; white-space: nowrap; letter-spacing: 0.2em;
-            color: transparent; opacity: 0.7;
-        }
-        
-        .wrap-sub.left .vertical-text { 
-            writing-mode: vertical-rl; transform: rotate(180deg); animation: scroll-up 20s linear infinite;
-            -webkit-text-stroke: 1.5px var(--theme-a); text-shadow: 0 0 15px var(--theme-a);
-        }
-        .wrap-sub.right .vertical-text { 
-            writing-mode: vertical-rl; animation: scroll-down 20s linear infinite;
-            -webkit-text-stroke: 1.5px var(--theme-b); text-shadow: 0 0 15px var(--theme-b);
-        }
+        .vertical-ticker { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; z-index: 3; pointer-events: none; overflow: hidden; }
+        .vertical-text { font-size: 8vh; font-weight: 900; text-transform: uppercase; white-space: nowrap; letter-spacing: 0.2em; color: transparent; opacity: 0.7; }
+        .wrap-sub.left .vertical-text { writing-mode: vertical-rl; transform: rotate(180deg); animation: scroll-up 20s linear infinite; -webkit-text-stroke: 1.5px var(--theme-a); text-shadow: 0 0 15px var(--theme-a); }
+        .wrap-sub.right .vertical-text { writing-mode: vertical-rl; animation: scroll-down 20s linear infinite; -webkit-text-stroke: 1.5px var(--theme-b); text-shadow: 0 0 15px var(--theme-b); }
         
         @keyframes scroll-up { 0% { transform: rotate(180deg) translateY(-50%); } 100% { transform: rotate(180deg) translateY(50%); } }
         @keyframes scroll-down { 0% { transform: translateY(50%); } 100% { transform: translateY(-50%); } }
@@ -70,24 +48,15 @@
         .sf-decor-line { position: absolute; z-index: 5; pointer-events: none; background: var(--line-color); }
         .decor-h { width: 100%; height: 1px; top: 8vh; }
         .decor-v { width: 1px; height: 100%; left: 50%; transform: translateX(-50%); opacity: 0.3; }
-        
         .crosshair { position: absolute; width: 15px; height: 15px; z-index: 5; pointer-events: none; }
         .crosshair::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(255,255,255,0.4); }
         .crosshair::after { content: ''; position: absolute; top: 0; left: 50%; width: 1px; height: 100%; background: rgba(255,255,255,0.4); }
 
         /* --- 인터페이스 레이어 --- */
-        .interface-layer {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 10; pointer-events: none; display: flex; justify-content: space-between; padding: 60px;
-        }
+        .interface-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; justify-content: space-between; padding: 60px; }
 
         /* 상단 HUD 컨트롤 */
-        .upload-hud {
-            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-            display: flex; align-items: center; gap: 8px; pointer-events: auto;
-            background: rgba(0,0,0,0.7); padding: 8px 15px; border-radius: 4px;
-            border: 1px solid var(--line-color); backdrop-filter: blur(5px); z-index: 100;
-        }
+        .upload-hud { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; pointer-events: auto; background: rgba(0,0,0,0.7); padding: 8px 15px; border-radius: 4px; border: 1px solid var(--line-color); backdrop-filter: blur(5px); z-index: 100; }
         .sf-btn { display: inline-flex; align-items: center; padding: 5px 10px; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: #fff; font-size: 11px; font-weight:600; cursor: pointer; text-transform: uppercase; transition: 0.2s; border-radius: 2px; }
         .sf-btn:hover { background: rgba(255,255,255,0.1); border-color: #fff; }
         .sf-btn.export-btn { background: rgba(0, 240, 255, 0.1); border-color: rgba(0, 240, 255, 0.5); color: #00f0ff; margin-left: 10px; }
@@ -102,12 +71,7 @@
 
         .tag-group { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; width: 100%; }
         .profile-panel.right .tag-group { justify-content: flex-end; }
-        
-        .sf-tag {
-            font-size: 11px; padding: 4px 10px; color: #fff; border: 1px solid var(--line-color);
-            background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); letter-spacing: 0.1em; outline: none;
-            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-        }
+        .sf-tag { font-size: 11px; padding: 4px 10px; color: #fff; border: 1px solid var(--line-color); background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); letter-spacing: 0.1em; outline: none; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); }
         .profile-panel.left .sf-tag { border-bottom: 2px solid var(--theme-a); }
         .profile-panel.right .sf-tag { border-bottom: 2px solid var(--theme-b); }
 
@@ -115,14 +79,31 @@
         .profile-panel.left .codename { text-shadow: 0 0 20px var(--theme-a); }
         .profile-panel.right .codename { text-shadow: 0 0 20px var(--theme-b); text-align: right; }
 
-        .stat-grid { width: 100%; display: grid; gap: 14px 0; grid-template-columns: 100px 1fr; align-items: flex-start; }
-        .profile-panel.right .stat-grid { text-align: right; grid-template-columns: 1fr 100px; }
+        /* [BUG FIX] 데이터 그리드 정렬 및 레이아웃 수정 */
+        .stat-grid { 
+            width: 100%; 
+            display: grid; 
+            gap: 16px 0; /* 세로 간격을 살짝 넓혀 안정감 부여 */
+            /* 열 너비를 130px로 늘려 긴 영어 단어가 한 줄에 들어가게 강제 */
+            grid-template-columns: 130px 1fr; 
+            /* 항목과 내용을 수직 중앙으로 완벽하게 맞춤 */
+            align-items: center; 
+        }
+        .profile-panel.right .stat-grid { text-align: right; grid-template-columns: 1fr 130px; }
 
-        .stat-label { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 700; outline: none; position: relative; }
+        .stat-label { 
+            font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 700; outline: none; position: relative; 
+            /* [핵심] 줄바꿈 절대 방지 */
+            white-space: nowrap; 
+        }
+        
         .profile-panel.left .stat-label { color: var(--theme-a); padding-left: 18px; }
-        .profile-panel.left .stat-label::before { content: ''; position: absolute; left: 0; top: 4px; width: 6px; height: 6px; background: var(--theme-a); transform: rotate(45deg); box-shadow: 0 0 5px var(--theme-a); }
+        /* 마름모도 텍스트의 수직 중앙(50%)에 정확히 오도록 계산식 수정 */
+        .profile-panel.left .stat-label::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%) rotate(45deg); width: 6px; height: 6px; background: var(--theme-a); box-shadow: 0 0 5px var(--theme-a); }
+        
         .profile-panel.right .stat-label { color: var(--theme-b); padding-right: 18px; }
-        .profile-panel.right .stat-label::after { content: ''; position: absolute; right: 0; top: 4px; width: 6px; height: 6px; background: var(--theme-b); transform: rotate(45deg); box-shadow: 0 0 5px var(--theme-b); }
+        /* 우측 마름모 정중앙 계산식 수정 */
+        .profile-panel.right .stat-label::after { content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%) rotate(45deg); width: 6px; height: 6px; background: var(--theme-b); box-shadow: 0 0 5px var(--theme-b); }
 
         .stat-value { font-size: 14px; color: #e2e8f0; font-weight: 300; line-height: 1.6; word-break: keep-all; outline: none; }
 
@@ -139,27 +120,25 @@
         <div class="sf-decor-line decor-h"></div>
         <div class="sf-decor-line decor-v"></div>
 
-        <!-- [LAYER 1] 4패널 & 물리적 어둠 장막(gradient-fade) 적용 -->
         <div class="panel-wrapper wrap-sub left">
             <div class="img-panel img-sub" id="panel-sub-a"></div>
-            <div class="gradient-fade sub-fade"></div> <!-- html2canvas 픽스 장막 -->
+            <div class="gradient-fade sub-fade"></div>
             <div class="vertical-ticker"><div class="vertical-text" id="vert-text-a">ALPHA</div></div>
         </div>
         <div class="panel-wrapper wrap-bg" id="wrap-bg-a">
             <div class="img-panel" id="panel-bg-a"></div>
-            <div class="gradient-fade main-fade"></div> <!-- html2canvas 픽스 장막 -->
+            <div class="gradient-fade main-fade"></div>
         </div>
         <div class="panel-wrapper wrap-bg" id="wrap-bg-b">
             <div class="img-panel" id="panel-bg-b"></div>
-            <div class="gradient-fade main-fade"></div> <!-- html2canvas 픽스 장막 -->
+            <div class="gradient-fade main-fade"></div>
         </div>
         <div class="panel-wrapper wrap-sub right">
             <div class="img-panel img-sub" id="panel-sub-b"></div>
-            <div class="gradient-fade sub-fade"></div> <!-- html2canvas 픽스 장막 -->
+            <div class="gradient-fade sub-fade"></div>
             <div class="vertical-ticker"><div class="vertical-text" id="vert-text-b">OMEGA</div></div>
         </div>
 
-        <!-- [LAYER 2] 데이터 인터페이스 레이어 -->
         <div class="interface-layer">
             <div class="crosshair" style="top: 8vh; left: 11vw; transform: translate(-50%, -50%);"></div>
             <div class="crosshair" style="top: 8vh; right: 11vw; transform: translate(50%, -50%);"></div>
@@ -272,7 +251,6 @@
             if (!file) return;
             const reader = new FileReader();
             reader.onload = (e) => { 
-                // Local FileReader API에서 추출된 base64 데이터는 html2canvas가 완벽하게 인식합니다.
                 const dataUrl = e.target.result;
                 document.getElementById(targetId).style.backgroundImage = `url('${dataUrl}')`; 
                 saveToLocal('img_' + targetId, dataUrl);
@@ -296,28 +274,22 @@
                 const savedImg = localStorage.getItem('img_' + id);
                 if (savedImg) document.getElementById(id).style.backgroundImage = `url('${savedImg}')`;
             });
-            console.log("[SYSTEM] 물리 오버레이 엔진 가동. 아티팩트 복원 완료.");
         };
 
         function exportImage() {
             const hud = document.getElementById('hud-controls');
-            hud.style.display = 'none'; // 버튼 숨김 처리
+            hud.style.display = 'none'; 
             
-            console.log("[SYSTEM] 고해상도 이미지 렌더링 시퀀스 가동...");
-
-            // backgroundColor를 검정으로 강제 세팅하여 안정성을 더 높입니다.
             html2canvas(document.getElementById('export-area'), {
                 backgroundColor: "#000000",
                 scale: 2, 
                 useCORS: true
             }).then(canvas => {
                 const link = document.createElement('a');
-                link.download = 'SF_PAIR_PROFILE_MASTERPIECE.png';
+                link.download = 'SF_PAIR_PROFILE_PERFECT_GRID.png';
                 link.href = canvas.toDataURL('image/png');
                 link.click();
-                
-                hud.style.display = 'flex'; // 버튼 복구
-                console.log("[SYSTEM] 렌더링 완료! 보스, 완벽한 심연이 추출되었습니다.");
+                hud.style.display = 'flex'; 
             });
         }
     </script>
