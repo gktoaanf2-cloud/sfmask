@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SF PAIR PROFILE FRAME</title>
+    <title>SF PAIR PROFILE FRAME - FULLSCREEN</title>
     <!-- Pretendard 폰트 로드 -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
         :root {
-            --sf-bg: #000000;
-            --sf-accent: #00f0ff; /* 차가운 네온 시안 */
+            --sf-accent: #00f0ff;
             --sf-text: #ffffff;
             --sf-ui-bg: rgba(0, 0, 0, 0.6);
         }
@@ -21,176 +20,192 @@
             font-family: 'Pretendard', sans-serif;
         }
 
+        /* 스크롤바와 여백을 완전히 날려버립니다 */
         body {
-            background-color: #1a1a1a;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            background-color: #000;
+            overflow: hidden; 
             color: var(--sf-text);
         }
 
-        /* 캡처 캔버스: 1920x1080 비율 고정 */
+        /* 공백 절대 불허. 화면 100% 꽉 채우기 */
         .capture-canvas {
             position: relative;
-            width: 1920px;
-            height: 1080px;
-            background-color: var(--sf-bg);
+            width: 100vw;
+            height: 100vh;
             display: flex;
             overflow: hidden;
-            box-shadow: 0 0 50px rgba(0, 240, 255, 0.1);
+            background-color: #050505;
         }
 
-        /* 중앙 하단: 페어명 */
+        /* --- 1. 배경 영역 (정확히 50vw씩 분할) --- */
+        .bg-layer {
+            position: absolute;
+            top: 0;
+            width: 50vw;
+            height: 100vh;
+            background-size: cover;
+            background-position: center;
+            z-index: 1;
+        }
+        .bg-layer.left { left: 0; }
+        .bg-layer.right { right: 0; }
+
+        /* 배경을 어둡게 눌러주는 오버레이 */
+        .black-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.85) 100%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* --- 2. 양 끝단 서브 이미지 & 테마 컬러 박스 영역 --- */
+        .side-panel {
+            position: absolute;
+            top: 0;
+            width: 25vw; /* 화면 양 끝 25% 차지 */
+            height: 100vh;
+            z-index: 3;
+            overflow: hidden;
+        }
+        .side-panel.left { left: 0; }
+        .side-panel.right { right: 0; }
+
+        /* 테마 컬러 박스 (서브 이미지 뒤에 깔림) */
+        .theme-box {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            /* 기본 테마색, JS로 변경됨 */
+            background-color: rgba(0, 240, 255, 0.15); 
+            mix-blend-mode: color-dodge; /* SF스러운 발광 효과 */
+            border-left: 2px solid transparent;
+            border-right: 2px solid transparent;
+            transition: background-color 0.5s ease;
+        }
+        .side-panel.left .theme-box { border-right: 1px solid rgba(255,255,255,0.1); }
+        .side-panel.right .theme-box { border-left: 1px solid rgba(255,255,255,0.1); }
+
+        /* 서브 이미지 (흉상) - 하단으로 갈수록 투명화 */
+        .edge-bust {
+            position: absolute;
+            top: 10%; /* 살짝 내려서 캐릭터 얼굴이 잘리 않게 */
+            left: 0;
+            width: 100%; height: 90%;
+            background-size: cover;
+            background-position: center top;
+            background-repeat: no-repeat;
+            /* 핵심: 서브 이미지가 하단으로 녹아내리며 테마 박스가 드러남 */
+            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 95%);
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 95%);
+        }
+
+        /* --- 3. 중앙 하단 페어명 --- */
         .center-pair-name {
             position: absolute;
-            bottom: 60px; /* 격자 삭제 후 하단으로 배치 */
+            bottom: 40px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 100;
             text-align: center;
-            width: 500px;
+            width: 60vw;
         }
 
         .center-pair-name input {
             background: transparent;
             border: none;
             color: #fff;
-            font-size: 52px;
-            font-weight: 800;
+            font-size: 3.5vw;
+            font-weight: 900;
             text-align: center;
-            letter-spacing: 0.25em;
+            letter-spacing: 0.3em;
             outline: none;
-            text-shadow: 0 0 20px rgba(0, 240, 255, 0.8);
+            text-shadow: 0 0 30px rgba(0, 0, 0, 0.8), 0 0 10px rgba(255, 255, 255, 0.5);
             width: 100%;
         }
 
-        .center-pair-name .sf-line {
-            width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--sf-accent), transparent);
-            margin-top: 15px;
-            box-shadow: 0 0 10px var(--sf-accent);
-        }
-
-        /* 캐릭터 섹션 분할 (정확히 50%씩) */
-        .character-section {
-            width: 50%;
-            height: 100%;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* 개별 배경 이미지 영역 (50% 영역 전체 차지) */
-        .bg-layer {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background-size: cover;
-            background-position: center;
-            background-color: #0a0b10;
-            z-index: 1;
-        }
-
-        /* 사이드 끝 흉상 영역 (서브 이미지) */
-        .edge-bust {
-            position: absolute;
-            bottom: 0;
-            width: 50%; /* 흉상의 너비 */
-            height: 90%;
-            z-index: 2;
-            background-size: cover;
-            background-position: center bottom;
-            background-repeat: no-repeat;
-            /* 위에서 아래로 사라지는 그라데이션 마스크 */
-            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%);
-            mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%);
-        }
-
-        /* 왼쪽 캐릭터는 왼쪽 끝에, 오른쪽 캐릭터는 오른쪽 끝에 흉상 배치 */
-        .character-section.left .edge-bust { left: 0; }
-        .character-section.right .edge-bust { right: 0; }
-
-        .black-overlay {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.9) 100%);
-            z-index: 3;
-            pointer-events: none;
-        }
-
-        /* 내부 컨텐츠 영역 (하단으로 정보가 이어짐) */
+        /* --- 4. 텍스트 및 UI 컨텐츠 영역 --- */
         .content-area {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            padding: 80px 100px;
+            position: absolute;
+            top: 0;
+            width: 50vw;
+            height: 100vh;
+            padding: 60px 4vw;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             z-index: 10;
         }
+        .content-area.left { left: 0; }
+        .content-area.right { right: 0; align-items: flex-end; text-align: right; }
 
-        .character-section.right .content-area {
-            align-items: flex-end; /* 오른쪽 캐릭터 텍스트는 우측 정렬 */
-            text-align: right;
-        }
-
-        /* 업로드 UI 버튼 세팅 */
+        /* UI 패널 */
         .upload-ui {
             display: flex;
-            gap: 15px;
-            z-index: 50; /* 버튼이 이미지에 묻히지 않도록 최상단 배치 */
+            gap: 10px;
+            z-index: 50;
+            background: rgba(0,0,0,0.4);
+            padding: 10px;
+            border-radius: 4px;
+            backdrop-filter: blur(5px);
         }
 
         .sf-btn {
-            display: inline-block;
-            padding: 10px 20px;
-            border: 1px solid rgba(255,255,255,0.3);
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 12px;
+            border: 1px solid rgba(255,255,255,0.2);
             background: var(--sf-ui-bg);
-            color: var(--sf-accent);
-            font-size: 13px;
+            color: #fff;
+            font-size: 12px;
             font-weight: 600;
-            letter-spacing: 0.1em;
             cursor: pointer;
             transition: 0.3s;
-            backdrop-filter: blur(5px);
         }
 
         .sf-btn:hover {
             border-color: var(--sf-accent);
-            box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
-            background: rgba(0, 240, 255, 0.1);
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
         }
 
-        .sf-btn input[type="file"] {
-            display: none;
+        .sf-btn input[type="file"] { display: none; }
+        
+        /* 테마 컬러 픽커 커스텀 */
+        .sf-btn input[type="color"] {
+            width: 20px;
+            height: 20px;
+            padding: 0;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            margin-left: 8px;
         }
 
-        /* 임시 프로필 텍스트 박스 (배경 제거, 텍스트만 띄움) */
+        /* 텍스트 영역 */
         .profile-temp-box {
-            margin-top: auto; /* 하단으로 정보가 이어지도록 밀어냄 */
-            margin-bottom: 80px; /* 페어명과 겹치지 않도록 여백 */
-            max-width: 80%;
-            /* 텍스트 가독성을 위한 강력한 그림자 (배경 박스 없음) */
-            text-shadow: 0px 2px 10px rgba(0, 0, 0, 0.9), 0px 4px 20px rgba(0, 0, 0, 0.8);
+            margin-top: auto;
+            margin-bottom: 120px; /* 페어명과 안 겹치게 */
+            width: 22vw; /* 사이드 패널(25vw)을 피해서 배치 */
+            text-shadow: 0px 2px 10px rgba(0, 0, 0, 1), 0px 4px 15px rgba(0, 0, 0, 0.8);
         }
+        /* 왼쪽 캐릭터는 서브이미지 우측으로, 오른쪽 캐릭터는 서브이미지 좌측으로 텍스트 밀기 */
+        .content-area.left .profile-temp-box { margin-left: 26vw; }
+        .content-area.right .profile-temp-box { margin-right: 26vw; }
 
         .sf-title {
-            font-size: 16px;
+            font-size: 1.2vw;
             color: var(--sf-accent);
-            letter-spacing: 0.2em;
-            margin-bottom: 20px;
-            font-weight: 700;
+            letter-spacing: 0.15em;
+            margin-bottom: 15px;
+            font-weight: 800;
         }
 
         .sf-text {
-            font-size: 18px;
-            line-height: 2.0;
-            color: #f1f3f5;
-            font-weight: 400;
+            font-size: 1vw;
+            line-height: 1.9;
+            color: #e2e8f0;
+            font-weight: 300;
             word-break: keep-all;
         }
     </style>
@@ -198,66 +213,78 @@
 <body>
     <div class="capture-canvas" id="export-area">
         
-        <!-- 중앙: 페어명 (하단 배치) -->
+        <!-- 1. 50:50 꽉 차는 배경 레이어 -->
+        <div class="bg-layer left" id="left-bg"></div>
+        <div class="bg-layer right" id="right-bg"></div>
+        <div class="black-overlay"></div>
+
+        <!-- 2. 양 끝단 사이드 패널 (테마 박스 + 서브 이미지) -->
+        <div class="side-panel left">
+            <div class="theme-box" id="theme-box-left"></div>
+            <div class="edge-bust" id="left-sub"></div>
+        </div>
+        <div class="side-panel right">
+            <div class="theme-box" id="theme-box-right"></div>
+            <div class="edge-bust" id="right-sub"></div>
+        </div>
+
+        <!-- 3. 왼쪽 컨텐츠 & UI -->
+        <div class="content-area left">
+            <div class="upload-ui">
+                <label class="sf-btn">배경<input type="file" accept="image/*" onchange="loadImage(event, 'left-bg')"></label>
+                <label class="sf-btn">서브<input type="file" accept="image/*" onchange="loadImage(event, 'left-sub')"></label>
+                <label class="sf-btn">테마색<input type="color" value="#00f0ff" onchange="changeTheme(event, 'theme-box-left')"></label>
+            </div>
+            <div class="profile-temp-box">
+                <h3 class="sf-title" contenteditable="true">CODENAME // ALPHA</h3>
+                <p class="sf-text" contenteditable="true">이곳에 텍스트가 위치합니다. 서브 이미지와 테마 컬러 박스를 침범하지 않도록 안전 구역을 확보했습니다.</p>
+            </div>
+        </div>
+
+        <!-- 4. 오른쪽 컨텐츠 & UI -->
+        <div class="content-area right">
+            <div class="upload-ui">
+                <label class="sf-btn">테마색<input type="color" value="#ff0055" onchange="changeTheme(event, 'theme-box-right')"></label>
+                <label class="sf-btn">서브<input type="file" accept="image/*" onchange="loadImage(event, 'right-sub')"></label>
+                <label class="sf-btn">배경<input type="file" accept="image/*" onchange="loadImage(event, 'right-bg')"></label>
+            </div>
+            <div class="profile-temp-box">
+                <h3 class="sf-title" contenteditable="true" style="color: #ff0055;">CODENAME // OMEGA</h3>
+                <p class="sf-text" contenteditable="true">캐릭터의 퍼스널 컬러가 담긴 박스 위로 서브 이미지가 스며듭니다. 오타쿠의 미학이란 바로 이런 디테일에서 완성되죠.</p>
+            </div>
+        </div>
+
+        <!-- 5. 중앙 하단 페어명 -->
         <div class="center-pair-name">
             <input type="text" placeholder="PAIR NAME" spellcheck="false">
-            <div class="sf-line"></div>
-        </div>
-
-        <!-- 왼쪽 캐릭터 영역 -->
-        <div class="character-section left">
-            <div class="bg-layer" id="left-bg"></div>
-            <div class="edge-bust" id="left-sub"></div>
-            <div class="black-overlay"></div>
-            
-            <div class="content-area">
-                <div class="upload-ui">
-                    <label class="sf-btn">배경 이미지<input type="file" accept="image/*" onchange="loadImage(event, 'left-bg')"></label>
-                    <label class="sf-btn">서브 이미지<input type="file" accept="image/*" onchange="loadImage(event, 'left-sub')"></label>
-                </div>
-                <div class="profile-temp-box">
-                    <h3 class="sf-title">PROFILE_DATA // 01</h3>
-                    <p class="sf-text" contenteditable="true">별도의 배경 없이 텍스트만 떠오릅니다.<br>이곳을 클릭하여 왼쪽 캐릭터의 프로필을 자유롭게 수정하십시오.<br>보스께서 원하시는 대로 완벽하게 커스텀 가능합니다.</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- 오른쪽 캐릭터 영역 -->
-        <div class="character-section right">
-            <div class="bg-layer" id="right-bg"></div>
-            <div class="edge-bust" id="right-sub"></div>
-            <div class="black-overlay"></div>
-
-            <div class="content-area">
-                <div class="upload-ui">
-                    <label class="sf-btn">배경 이미지<input type="file" accept="image/*" onchange="loadImage(event, 'right-bg')"></label>
-                    <label class="sf-btn">서브 이미지<input type="file" accept="image/*" onchange="loadImage(event, 'right-sub')"></label>
-                </div>
-                <div class="profile-temp-box">
-                    <h3 class="sf-title">PROFILE_DATA // 02</h3>
-                    <p class="sf-text" contenteditable="true">오른쪽 캐릭터의 서사가 위치할 공간입니다.<br>하단으로 텍스트가 자연스럽게 이어지도록 설계했습니다.<br>모든 텍스트는 클릭 즉시 수정할 수 있습니다.</p>
-                </div>
-            </div>
         </div>
 
     </div>
 
-    <!-- 이미지 업로드를 처리하는 오타쿠 프론트엔드의 영혼이 담긴 자바스크립트 -->
     <script>
+        // 이미지 렌더링 함수
         function loadImage(event, targetId) {
             const file = event.target.files[0];
             if (!file) return;
 
-            // 브라우저 내부에서만 도는 FileReader API 사용 (서버 전송 없음, 즉각 반영)
             const reader = new FileReader();
             reader.onload = function(e) {
                 const targetElement = document.getElementById(targetId);
                 targetElement.style.backgroundImage = `url('${e.target.result}')`;
-                
-                // 업로드 성공 시 콘솔에 프론트엔드의 사심 담긴 메시지 출력
-                console.log(`[SYSTEM] ${targetId} 이미지 렌더링 완료. 완벽한 비주얼입니다, 보스.`);
+                console.log(`[SYSTEM] ${targetId} 렌더링 완료.`);
             };
             reader.readAsDataURL(file);
+        }
+
+        // 테마 컬러 변경 함수 (퍼스널 컬러 기믹)
+        function changeTheme(event, targetId) {
+            const color = event.target.value;
+            const targetElement = document.getElementById(targetId);
+            // 헥스 컬러를 받아 SF 느낌이 나도록 opacity를 살짝 주어 배경에 씌움
+            // mix-blend-mode와 어우러져 환상적인 색감을 냅니다.
+            targetElement.style.backgroundColor = color;
+            targetElement.style.opacity = '0.3'; 
+            console.log(`[SYSTEM] ${targetId} 퍼스널 컬러 적용 완료: ${color}`);
         }
     </script>
 </body>
