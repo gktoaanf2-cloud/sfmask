@@ -3,231 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SF PAIR PROFILE - DEEP FADE EDITION</title>
-    <!-- Pretendard 폰트 로드 -->
+    <title>SF PAIR PROFILE - RAW DATA HUD</title>
+    <!-- Pretendard 폰트 로드 (가장 안정적인 방식 적용) -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
         :root {
-            /* JS로 제어될 캐릭터 퍼스널 컬러 (초기값) */
             --theme-a: #00f0ff;
             --theme-b: #ff0055;
-            
             --sf-text: #ffffff;
-            --text-dim: rgba(255, 255, 255, 0.7);
-            --glass-bg: rgba(0, 0, 0, 0.4);
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-dim: rgba(255, 255, 255, 0.5);
+            --line-color: rgba(255, 255, 255, 0.15);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Pretendard', sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
 
         body {
-            background-color: #000;
-            overflow: hidden;
-            color: var(--sf-text);
-            width: 100vw;
-            height: 100vh;
+            background-color: #000; overflow: hidden;
+            color: var(--sf-text); width: 100vw; height: 100vh;
         }
 
         .capture-canvas {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            overflow: hidden;
-            background: #000;
+            position: relative; width: 100%; height: 100%;
+            display: flex; overflow: hidden; background: #000;
         }
 
-        /* --- 레이아웃 래퍼 (배경색/테마색을 담당) --- */
-        .panel-wrapper {
-            position: relative;
-            height: 100vh;
-        }
+        /* --- 레이아웃 래퍼 --- */
+        .panel-wrapper { position: relative; height: 100vh; }
+        .wrap-sub { width: 11vw; background-color: #000; position: relative; overflow: hidden; }
+        .wrap-bg { width: 39vw; }
+        
+        #wrap-bg-a { background: linear-gradient(to bottom, #020202 20%, var(--theme-a) 150%); }
+        #wrap-bg-b { background: linear-gradient(to bottom, #020202 20%, var(--theme-b) 150%); }
 
-        /* 서브 패널 래퍼 (가로폭 11vw 로 축소, 배경은 완전한 검정) */
-        .wrap-sub {
-            width: 11vw;
-            background-color: #000;
-            border-right: 1px solid rgba(255,255,255,0.05);
-        }
-        .wrap-sub.right {
-            border-right: none;
-            border-left: 1px solid rgba(255,255,255,0.05);
-        }
-
-        /* 메인 배경 래퍼 (가로폭 39vw 로 확장, 하단에 테마색이 깔림) */
-        .wrap-bg {
-            width: 39vw;
-            /* 위는 검정, 아래는 각 캐릭터의 테마색으로 빛나는 그라데이션 배경 */
-        }
-        #wrap-bg-a { background: linear-gradient(to bottom, #050508 30%, var(--theme-a) 120%); }
-        #wrap-bg-b { background: linear-gradient(to bottom, #050508 30%, var(--theme-b) 120%); }
-
-
-        /* --- 실제 이미지가 들어가는 컨테이너 --- */
-        .img-panel {
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center top;
-            background-repeat: no-repeat;
-            transition: background-image 0.5s ease;
-        }
-
-        /* 서브 이미지: 어둡게(opacity) + 상단에서 하단으로 투명화 */
+        /* --- 서브 및 메인 이미지 --- */
+        .img-panel { width: 100%; height: 100%; background-size: cover; background-position: center top; transition: 0.5s ease; }
+        
         .img-sub {
-            opacity: 0.35; /* 베이스 오퍼시티를 낮춰 다크한 무드 형성 */
+            opacity: 0.3;
             -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 10%, rgba(0,0,0,0) 80%);
             mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 10%, rgba(0,0,0,0) 80%);
+            z-index: 1;
         }
 
-        /* 메인 배경 이미지: 상단에서 하단으로 투명화 (아래 깔린 테마색이 드러남) */
         .img-main {
             -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 95%);
             mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 95%);
         }
 
-
-        /* --- 텍스트 및 UI 레이어 (최상단) --- */
-        .interface-layer {
-            position: absolute;
-            top: 0; left: 0;
+        /* --- [NEW] 사이드바 90도 버티컬 애니메이션 텍스트 --- */
+        .vertical-ticker {
+            position: absolute; top: 0; left: 0;
             width: 100%; height: 100%;
-            z-index: 10;
-            pointer-events: none;
-            display: flex;
-            justify-content: space-between;
-            padding: 60px;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 2; pointer-events: none;
+            overflow: hidden;
         }
-
-        /* 상단 HUD (이미지 업로드 및 컬러 픽커) */
-        .upload-hud {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            pointer-events: auto;
-            background: rgba(0,0,0,0.6);
-            padding: 10px 15px;
-            border-radius: 4px;
-            backdrop-filter: blur(5px);
-            border: 1px solid var(--glass-border);
-        }
-
-        .sf-btn {
-            display: inline-flex;
-            align-items: center;
-            padding: 6px 10px;
-            border: 1px solid rgba(255,255,255,0.2);
-            background: transparent;
-            color: #fff;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            transition: 0.2s;
-        }
-        .sf-btn:hover { background: rgba(255,255,255,0.1); border-color: #fff; }
-        .sf-btn input[type="file"] { display: none; }
         
-        .sf-btn input[type="color"] {
-            width: 16px; height: 16px;
-            padding: 0; border: none;
-            background: transparent; cursor: pointer;
-            margin-right: 6px;
+        .vertical-text {
+            font-size: 8vh; /* 화면 높이에 비례한 거대한 폰트 */
+            font-weight: 900;
+            text-transform: uppercase;
+            white-space: nowrap;
+            /* SF 홀로그램 텍스트 연출 (테두리만 남김) */
+            color: transparent;
+            -webkit-text-stroke: 1px rgba(255, 255, 255, 0.08);
+            letter-spacing: 0.2em;
         }
 
-        .hud-divider {
-            color: rgba(255,255,255,0.3);
-            margin: 0 5px;
-            font-size: 14px;
+        /* 왼쪽은 아래에서 위로 읽히도록 180도 추가 회전 */
+        .wrap-sub.left .vertical-text {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            animation: scroll-up 20s linear infinite;
+        }
+        /* 오른쪽은 위에서 아래로 읽히도록 */
+        .wrap-sub.right .vertical-text {
+            writing-mode: vertical-rl;
+            animation: scroll-down 20s linear infinite;
         }
 
+        @keyframes scroll-up { 0% { transform: rotate(180deg) translateY(-50%); } 100% { transform: rotate(180deg) translateY(50%); } }
+        @keyframes scroll-down { 0% { transform: translateY(50%); } 100% { transform: translateY(-50%); } }
 
-        /* --- 미학적 프로필 패널 디자인 --- */
+
+        /* --- 인터페이스 레이어 --- */
+        .interface-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 10; pointer-events: none; display: flex; justify-content: space-between; padding: 60px;
+        }
+
+        /* 상단 HUD */
+        .upload-hud {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            display: flex; align-items: center; gap: 8px; pointer-events: auto;
+            background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 4px; border: 1px solid var(--line-color);
+        }
+        .sf-btn { display: inline-flex; align-items: center; padding: 6px 10px; border: 1px solid rgba(255,255,255,0.2); background: transparent; color: #fff; font-size: 11px; font-weight: 600; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .sf-btn:hover { background: rgba(255,255,255,0.1); }
+        .sf-btn input[type="file"], .sf-btn input[type="color"] { display: none; }
+        .sf-btn.color-btn { padding-left: 0; border: none; }
+        .color-circle { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+
+        /* --- [NEW] 미학적 프로필 패널 (배경 삭제, 텍스트 UI 고도화) --- */
         .profile-panel {
-            pointer-events: auto;
-            width: 22vw;
-            height: 65vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            position: relative;
+            pointer-events: auto; width: 26vw; height: 75vh;
+            display: flex; flex-direction: column; justify-content: flex-end;
+        }
+        .profile-panel.left { margin-left: 12vw; }
+        .profile-panel.right { margin-right: 12vw; align-items: flex-end; }
+
+        /* 코드네임 (가장 큰 이름) */
+        .codename {
+            font-size: 3.5vw; font-weight: 900; letter-spacing: 0.05em; text-transform: uppercase;
+            margin-bottom: 25px; line-height: 1; outline: none;
+        }
+        .profile-panel.left .codename { color: #fff; text-shadow: 0 0 20px var(--theme-a), 0 0 40px rgba(0,0,0,0.8); }
+        .profile-panel.right .codename { color: #fff; text-shadow: 0 0 20px var(--theme-b), 0 0 40px rgba(0,0,0,0.8); text-align: right; }
+
+        /* 데이터 그리드 (세부 항목) */
+        .stat-grid {
+            width: 100%; display: grid; gap: 12px 0;
+            grid-template-columns: 100px 1fr; /* 라벨 100px, 나머지 내용 */
+            align-items: flex-start;
+        }
+        /* 오른쪽 패널은 그리드 좌우 반전 느낌을 위해 정렬 변경 */
+        .profile-panel.right .stat-grid { text-align: right; grid-template-columns: 1fr 100px; }
+
+        .stat-label {
+            font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
+            padding-top: 4px; font-weight: 700; outline: none;
+            border-top: 1px solid var(--line-color);
+        }
+        .profile-panel.left .stat-label { color: var(--theme-a); }
+        .profile-panel.right .stat-label { color: var(--theme-b); }
+
+        .stat-value {
+            font-size: 14px; color: #e2e8f0; font-weight: 300; line-height: 1.6; word-break: keep-all; outline: none;
+            padding-top: 2px; border-top: 1px solid var(--line-color);
         }
 
-        .profile-box {
-            background: var(--glass-bg);
-            backdrop-filter: blur(8px);
-            padding: 35px;
-            border: 1px solid var(--glass-border);
-            position: relative;
-        }
-
-        .profile-box::before {
-            content: '';
-            position: absolute;
-            top: 0; width: 80px; height: 3px;
-        }
-
-        /* 프로필 위치 간격 조정 (서브패널 11vw + 여백 2vw = 13vw) */
-        .profile-panel.left { margin-left: 13vw; }
-        .profile-panel.left .profile-box {
-            border-left: 2px solid var(--theme-a);
-            box-shadow: -15px 0 30px rgba(0, 0, 0, 0.5);
-        }
-        .profile-panel.left .profile-box::before { left: 0; background-color: var(--theme-a); }
-        .profile-panel.left .sf-name { text-shadow: 0 0 15px var(--theme-a); }
-
-        .profile-panel.right { margin-right: 13vw; text-align: right; }
-        .profile-panel.right .profile-box {
-            border-right: 2px solid var(--theme-b);
-            box-shadow: 15px 0 30px rgba(0, 0, 0, 0.5);
-        }
-        .profile-panel.right .profile-box::before { right: 0; background-color: var(--theme-b); }
-        .profile-panel.right .sf-name { text-shadow: 0 0 15px var(--theme-b); }
-
-
-        /* 텍스트 스타일링 */
-        .sf-id { font-size: 11px; color: var(--text-dim); letter-spacing: 0.3em; margin-bottom: 10px; text-transform: uppercase; }
-        .sf-name { font-size: 32px; font-weight: 800; color: #fff; margin-bottom: 20px; letter-spacing: 0.1em; }
-        .sf-desc { font-size: 15px; line-height: 1.8; color: #d1d5db; font-weight: 300; word-break: keep-all; }
-        .sf-desc::-webkit-scrollbar { display: none; }
-        .sf-desc { -ms-overflow-style: none; scrollbar-width: none; }
-
-
-        /* --- 중앙 하단 페어명 --- */
+        /* --- 중앙 하단 페어명 (div contenteditable 로 교체하여 폰트 깨짐 완벽 해결) --- */
         .center-pair-hud {
-            position: absolute;
-            bottom: 60px;
-            left: 50%;
-            transform: translateX(-50%);
-            text-align: center;
-            width: 50vw;
-            pointer-events: auto;
+            position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
+            text-align: center; width: 60vw; pointer-events: auto;
         }
-        .center-pair-hud input {
+        .center-pair-name {
+            display: inline-block; width: 100%;
             background: transparent; border: none; color: #fff;
-            font-size: 3.5vw; font-weight: 900; text-align: center;
-            letter-spacing: 0.4em; outline: none;
-            text-shadow: 0 0 20px rgba(255,255,255,0.3), 0 5px 30px rgba(0,0,0,1);
+            font-size: 2.8vw; font-weight: 900; text-align: center;
+            letter-spacing: 0.5em; outline: none;
+            text-shadow: 0 0 15px rgba(255,255,255,0.4), 0 5px 30px rgba(0,0,0,1);
+            text-transform: uppercase;
         }
-
     </style>
 </head>
 <body>
     <div class="capture-canvas" id="export-area">
         
-        <!-- [LAYER 1] 4패널 구조: 래퍼(배경/테마) + 자식(이미지/마스크) -->
+        <!-- [LAYER 1] 4패널 구조 & 버티컬 텍스트 애니메이션 -->
         <div class="panel-wrapper wrap-sub left">
             <div class="img-panel img-sub" id="panel-sub-a"></div>
+            <!-- 왼쪽 세로 텍스트 -->
+            <div class="vertical-ticker"><div class="vertical-text" id="vert-text-a">ALPHA</div></div>
         </div>
         
         <div class="panel-wrapper wrap-bg" id="wrap-bg-a">
@@ -240,75 +177,121 @@
         
         <div class="panel-wrapper wrap-sub right">
             <div class="img-panel img-sub" id="panel-sub-b"></div>
+            <!-- 오른쪽 세로 텍스트 -->
+            <div class="vertical-ticker"><div class="vertical-text" id="vert-text-b">OMEGA</div></div>
         </div>
 
-        <!-- [LAYER 2] 인터페이스 레이어 -->
+        <!-- [LAYER 2] 데이터 인터페이스 레이어 -->
         <div class="interface-layer">
             
             <!-- 상단 컨트롤 패널 -->
             <div class="upload-hud">
-                <label class="sf-btn"><input type="color" value="#00f0ff" onchange="updateTheme(event, '--theme-a')">테마 A</label>
+                <label class="sf-btn color-btn">
+                    <span class="color-circle" style="background:var(--theme-a)" id="circle-a"></span> 테마 A
+                    <input type="color" value="#00f0ff" onchange="updateTheme(event, 'a')">
+                </label>
                 <label class="sf-btn">Sub A<input type="file" accept="image/*" onchange="loadImage(event, 'panel-sub-a')"></label>
                 <label class="sf-btn">Bg A<input type="file" accept="image/*" onchange="loadImage(event, 'panel-bg-a')"></label>
-                
-                <span class="hud-divider">||</span>
-                
+                <span style="color:var(--line-color); margin: 0 5px;">||</span>
                 <label class="sf-btn">Bg B<input type="file" accept="image/*" onchange="loadImage(event, 'panel-bg-b')"></label>
                 <label class="sf-btn">Sub B<input type="file" accept="image/*" onchange="loadImage(event, 'panel-sub-b')"></label>
-                <label class="sf-btn"><input type="color" value="#ff0055" onchange="updateTheme(event, '--theme-b')">테마 B</label>
+                <label class="sf-btn color-btn">
+                    <span class="color-circle" style="background:var(--theme-b)" id="circle-b"></span> 테마 B
+                    <input type="color" value="#ff0055" onchange="updateTheme(event, 'b')">
+                </label>
             </div>
 
-            <!-- 프로필 A -->
+            <!-- 프로필 A (왼쪽) -->
             <div class="profile-panel left">
-                <div class="profile-box">
-                    <div class="sf-id">Code // 01</div>
-                    <div class="sf-name" contenteditable="true">CHARACTER A</div>
-                    <div class="sf-desc" contenteditable="true" style="max-height: 250px; overflow-y: auto;">
-                        보스, 텍스트는 이곳에 입력됩니다.<br><br>
-                        서브 이미지는 칠흑 속에서 희미하게 투명화되어 가라앉고, 메인 배경 이미지는 테마 컬러 위로 부드럽게 녹아내립니다.<br>
-                        가장 감각적이고 미학적인 오타쿠의 캔버스가 준비되었습니다.
-                    </div>
+                <!-- 코드네임: 수정 시 사이드바 텍스트와 실시간 동기화됨 -->
+                <div class="codename" id="codename-input-a" contenteditable="true" spellcheck="false" oninput="syncText('a')">ALPHA</div>
+                
+                <div class="stat-grid">
+                    <div class="stat-label" contenteditable="true" spellcheck="false">NAME</div>
+                    <div class="stat-value" contenteditable="true" spellcheck="false">본명을 입력하세요</div>
+                    
+                    <div class="stat-label" contenteditable="true" spellcheck="false">AGE</div>
+                    <div class="stat-value" contenteditable="true" spellcheck="false">연령 입력</div>
+                    
+                    <div class="stat-label" contenteditable="true" spellcheck="false">NATION</div>
+                    <div class="stat-value" contenteditable="true" spellcheck="false">국적 입력</div>
+                    
+                    <div class="stat-label" contenteditable="true" spellcheck="false">AFFILIATION</div>
+                    <div class="stat-value" contenteditable="true" spellcheck="false">소속 입력</div>
+                    
+                    <div class="stat-label" contenteditable="true" spellcheck="false">PERSONALITY</div>
+                    <div class="stat-value" contenteditable="true" spellcheck="false">캐릭터의 성격을 서술하십시오.</div>
+                    
+                    <div class="stat-label" contenteditable="true" spellcheck="false">BACKGROUND</div>
+                    <div class="stat-value" contenteditable="true" spellcheck="false">자세한 설정과 과거사를 이곳에 작성합니다. 길어져도 디자인이 깨지지 않도록 레이아웃을 구축했습니다.</div>
+                    
+                    <div class="stat-label" contenteditable="true" spellcheck="false">ETC</div>
+                    <div class="stat-value" contenteditable="true" spellcheck="false">기타 메모 사항</div>
                 </div>
             </div>
 
-            <!-- 프로필 B -->
+            <!-- 프로필 B (오른쪽) -->
             <div class="profile-panel right">
-                <div class="profile-box">
-                    <div class="sf-id">Code // 02</div>
-                    <div class="sf-name" contenteditable="true">CHARACTER B</div>
-                    <div class="sf-desc" contenteditable="true" style="max-height: 250px; overflow-y: auto;">
-                        프로필 박스의 네온 포인트와 이름의 그림자 색상 역시 상단에서 선택한 테마 컬러와 100% 동기화되어 실시간으로 변합니다.<br><br>
-                        이것이 바로 디자인과 코드가 완벽하게 결합된 프론트엔드의 진수입니다.
-                    </div>
+                <!-- 코드네임: 수정 시 사이드바 텍스트와 실시간 동기화됨 -->
+                <div class="codename" id="codename-input-b" contenteditable="true" spellcheck="false" oninput="syncText('b')">OMEGA</div>
+                
+                <div class="stat-grid">
+                    <!-- 오른쪽은 값(Value)이 먼저 오고 라벨(Label)이 우측에 붙는 대칭 구조 -->
+                    <div class="stat-value" contenteditable="true" spellcheck="false">본명을 입력하세요</div>
+                    <div class="stat-label" contenteditable="true" spellcheck="false">NAME</div>
+                    
+                    <div class="stat-value" contenteditable="true" spellcheck="false">연령 입력</div>
+                    <div class="stat-label" contenteditable="true" spellcheck="false">AGE</div>
+                    
+                    <div class="stat-value" contenteditable="true" spellcheck="false">국적 입력</div>
+                    <div class="stat-label" contenteditable="true" spellcheck="false">NATION</div>
+                    
+                    <div class="stat-value" contenteditable="true" spellcheck="false">소속 입력</div>
+                    <div class="stat-label" contenteditable="true" spellcheck="false">AFFILIATION</div>
+                    
+                    <div class="stat-value" contenteditable="true" spellcheck="false">캐릭터의 성격을 서술하십시오.</div>
+                    <div class="stat-label" contenteditable="true" spellcheck="false">PERSONALITY</div>
+                    
+                    <div class="stat-value" contenteditable="true" spellcheck="false">배경 설정을 입력하십시오. 우측 정렬된 대칭 구조가 미학적 안정감을 줍니다.</div>
+                    <div class="stat-label" contenteditable="true" spellcheck="false">BACKGROUND</div>
+                    
+                    <div class="stat-value" contenteditable="true" spellcheck="false">기타 메모 사항</div>
+                    <div class="stat-label" contenteditable="true" spellcheck="false">ETC</div>
                 </div>
             </div>
 
             <!-- 중앙 페어명 -->
             <div class="center-pair-hud">
-                <input type="text" placeholder="PAIR NAME" spellcheck="false">
+                <div class="center-pair-name" contenteditable="true" spellcheck="false">PAIR NAME HERE</div>
             </div>
 
         </div>
     </div>
 
     <script>
-        // 이미지 렌더링
+        // 1. 이미지 로드
         function loadImage(event, targetId) {
             const file = event.target.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById(targetId).style.backgroundImage = `url('${e.target.result}')`;
-            };
+            reader.onload = (e) => { document.getElementById(targetId).style.backgroundImage = `url('${e.target.result}')`; };
             reader.readAsDataURL(file);
         }
 
-        // 테마 컬러 실시간 동기화 (CSS 변수 업데이트)
-        function updateTheme(event, cssVar) {
+        // 2. 테마 컬러 실시간 업데이트
+        function updateTheme(event, target) {
             const color = event.target.value;
-            // :root 에 선언된 변수를 덮어씌워 전체 테마색(그라데이션, 네온 포인트, 텍스트 그림자 등)을 일괄 변경
-            document.documentElement.style.setProperty(cssVar, color);
-            console.log(`[SYSTEM] ${cssVar} 퍼스널 컬러 업데이트 완료: ${color}`);
+            document.documentElement.style.setProperty(`--theme-${target}`, color);
+            document.getElementById(`circle-${target}`).style.background = color; // 버튼 UI 색상도 변경
+        }
+
+        // 3. 코드네임 <-> 사이드바 애니메이션 텍스트 실시간 동기화
+        function syncText(target) {
+            // 입력된 코드네임 값을 가져와 양옆 빈 공간 제거 후 대문자 변환
+            let text = document.getElementById(`codename-input-${target}`).innerText.trim().toUpperCase();
+            if (text === '') text = 'UNKNOWN'; // 다 지웠을 때의 기본값 방어
+            // 사이드바 텍스트에 즉시 반영
+            document.getElementById(`vert-text-${target}`).innerText = text;
         }
     </script>
 </body>
