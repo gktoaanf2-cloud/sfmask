@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SF PAIR PROFILE - PERFECT TAG EDITION</title>
-    <!-- Pretendard 폰트 로드 -->
+    <title>SF PAIR PROFILE</title>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -12,124 +11,132 @@
             --theme-a: #00f0ff;
             --theme-b: #ff0055;
             --sf-text: #ffffff;
-            --text-dim: rgba(255, 255, 255, 0.4);
-            --line-color: rgba(255, 255, 255, 0.15);
+            --text-dim: rgba(255,255,255,0.4);
+            --line-color: rgba(255,255,255,0.15);
+            --name-size: 3.5vw;
         }
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Pretendard',sans-serif!important;}
+        body{background:#000;overflow:hidden;color:var(--sf-text);width:100vw;height:100vh;}
+        .capture-canvas{position:relative;width:100%;height:100%;display:flex;overflow:hidden;background:#000;}
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif !important; }
+        .panel-wrapper{position:relative;height:100vh;}
+        .wrap-sub{width:11vw;background:#000;position:relative;overflow:hidden;}
+        .wrap-bg{width:39vw;background:#000;position:relative;overflow:hidden;}
 
-        body { background-color: #000; overflow: hidden; color: var(--sf-text); width: 100vw; height: 100vh; }
+        .img-panel,.gradient-fade{position:absolute;top:-1px;left:-1px;width:calc(100% + 2px);height:calc(100% + 2px);background-size:cover;background-position:center top;transition:0.5s ease;z-index:1;}
+        .img-sub{opacity:0.25;}
+        .gradient-fade{pointer-events:none;z-index:2;}
+        .sub-fade{background:linear-gradient(to bottom,transparent 5%,#000 70%,#000 100%);}
+        .main-fade{background:linear-gradient(to bottom,transparent 30%,#000 100%);}
 
-        .capture-canvas { position: relative; width: 100%; height: 100%; display: flex; overflow: hidden; background: #000000; }
+        /* ── SF 경계 십자 라인 (Sub↔Main 교차점) ── */
+        .boundary-line{position:absolute;top:0;height:100%;width:1px;z-index:8;pointer-events:none;}
+        .boundary-line::before{content:'';position:absolute;top:0;left:0;width:1px;height:100%;background:linear-gradient(to bottom,transparent 0%,var(--theme-a) 20%,rgba(255,255,255,0.06) 50%,var(--theme-b) 80%,transparent 100%);opacity:0.3;}
+        /* 십자형 빛 문양들 */
+        .boundary-cross{position:absolute;left:-8px;width:17px;height:17px;z-index:9;pointer-events:none;}
+        .boundary-cross::before{content:'';position:absolute;top:50%;left:0;width:100%;height:1px;background:linear-gradient(to right,transparent,rgba(255,255,255,0.5),transparent);}
+        .boundary-cross::after{content:'';position:absolute;left:50%;top:0;width:1px;height:100%;background:linear-gradient(to bottom,transparent,rgba(255,255,255,0.5),transparent);}
+        .boundary-cross .glow{position:absolute;top:50%;left:50%;width:3px;height:3px;transform:translate(-50%,-50%) rotate(45deg);background:rgba(255,255,255,0.6);}
 
-        /* --- 레이아웃 래퍼 --- */
-        .panel-wrapper { position: relative; height: 100vh; }
-        .wrap-sub { width: 11vw; background-color: #000; position: relative; overflow: hidden; }
-        /* [FIX] 1px 확장이 옆으로 삐져나오지 않도록 overflow 제어 완벽 적용 */
-        .wrap-bg { width: 39vw; background: #000; position: relative; overflow: hidden; }
+        /* 좌측 경계선 */
+        .boundary-left{left:11vw;}
+        /* 우측 경계선 */
+        .boundary-right{right:11vw;}
+        /* 중앙 경계선 */
+        .boundary-center{left:50%;transform:translateX(-50%);}
+        .boundary-center::before{background:linear-gradient(to bottom,transparent 0%,rgba(255,255,255,0.04) 30%,rgba(255,255,255,0.08) 50%,rgba(255,255,255,0.04) 70%,transparent 100%);opacity:0.5;}
 
-        /* --- 1px 흰 줄 방어 (Sub-pixel Bleeding Hack) --- */
-        .img-panel, .gradient-fade {
-            position: absolute; top: -1px; left: -1px; 
-            width: calc(100% + 2px); height: calc(100% + 2px); 
-            background-size: cover; background-position: center top; transition: 0.5s ease; z-index: 1; 
-        }
-        .img-sub { opacity: 0.25; }
+        /* Vertical ticker */
+        .vertical-ticker{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;z-index:3;pointer-events:none;overflow:hidden;}
+        .vertical-text{position:absolute;font-size:8vh;font-weight:900;text-transform:uppercase;white-space:nowrap;letter-spacing:0.2em;color:transparent;opacity:0.6;}
+        .wrap-sub.left .vertical-text{transform:rotate(-90deg);-webkit-text-stroke:1px var(--theme-a);animation:scroll-up-left 20s linear infinite;}
+        .wrap-sub.right .vertical-text{transform:rotate(90deg);-webkit-text-stroke:1px var(--theme-b);animation:scroll-down-right 20s linear infinite;}
+        @keyframes scroll-up-left{0%{transform:rotate(-90deg) translateX(-50vh);}100%{transform:rotate(-90deg) translateX(50vh);}}
+        @keyframes scroll-down-right{0%{transform:rotate(90deg) translateX(-50vh);}100%{transform:rotate(90deg) translateX(50vh);}}
 
-        /* 물리적 장막 */
-        .gradient-fade { pointer-events: none; z-index: 2; }
-        .sub-fade { background: linear-gradient(to bottom, transparent 5%, #000 70%, #000 100%); }
-        .main-fade { background: linear-gradient(to bottom, transparent 30%, #000 100%); }
+        /* SF decorations */
+        .sf-decor-line{position:absolute;z-index:5;pointer-events:none;background:var(--line-color);}
+        .decor-h{width:100%;height:1px;top:8vh;}
+        .crosshair{position:absolute;width:15px;height:15px;z-index:5;pointer-events:none;}
+        .crosshair::before{content:'';position:absolute;top:50%;left:0;width:100%;height:1px;background:rgba(255,255,255,0.4);}
+        .crosshair::after{content:'';position:absolute;top:0;left:50%;width:1px;height:100%;background:rgba(255,255,255,0.4);}
 
-        /* --- 사이드바 버티컬 애니메이션 텍스트 --- */
-        .vertical-ticker { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; z-index: 3; pointer-events: none; overflow: hidden; }
-        .vertical-text { position: absolute; font-size: 8vh; font-weight: 900; text-transform: uppercase; white-space: nowrap; letter-spacing: 0.2em; color: transparent; opacity: 0.8; }
-        .wrap-sub.left .vertical-text { transform: rotate(-90deg); -webkit-text-stroke: 1.5px var(--theme-a); text-shadow: 0 0 15px var(--theme-a); animation: scroll-up-left 20s linear infinite; }
-        .wrap-sub.right .vertical-text { transform: rotate(90deg); -webkit-text-stroke: 1.5px var(--theme-b); text-shadow: 0 0 15px var(--theme-b); animation: scroll-down-right 20s linear infinite; }
-        @keyframes scroll-up-left { 0% { transform: rotate(-90deg) translateX(-50vh); } 100% { transform: rotate(-90deg) translateX(50vh); } }
-        @keyframes scroll-down-right { 0% { transform: rotate(90deg) translateX(-50vh); } 100% { transform: rotate(90deg) translateX(50vh); } }
+        /* HUD */
+        .upload-hud{position:absolute;top:20px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;pointer-events:auto;background:rgba(0,0,0,0.7);padding:8px 15px;border-radius:4px;border:1px solid var(--line-color);backdrop-filter:blur(5px);z-index:100;flex-wrap:wrap;justify-content:center;}
+        .sf-btn{display:inline-flex;align-items:center;padding:5px 10px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#fff;font-size:11px;font-weight:600;cursor:pointer;text-transform:uppercase;transition:0.2s;border-radius:2px;}
+        .sf-btn:hover{background:rgba(255,255,255,0.1);border-color:#fff;}
+        .sf-btn.export-btn{background:rgba(0,240,255,0.1);border-color:rgba(0,240,255,0.5);color:#00f0ff;}
+        .sf-btn.export-btn:hover{background:rgba(0,240,255,0.3);box-shadow:0 0 10px rgba(0,240,255,0.5);}
+        .sf-btn input[type="file"],.sf-btn input[type="color"]{display:none;}
+        .color-circle{width:8px;height:8px;transform:rotate(45deg);display:inline-block;margin-right:6px;box-shadow:0 0 5px currentColor;}
+        .hud-divider{color:var(--text-dim);margin:0 6px;}
+        .hud-size{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-dim);letter-spacing:1px;}
+        .hud-size input[type="range"]{width:60px;-webkit-appearance:none;height:1px;background:rgba(255,255,255,0.2);outline:none;}
+        .hud-size input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;border:1px solid #fff;background:#000;border-radius:50%;cursor:pointer;}
 
-        /* --- SF 기하학적 장식 --- */
-        .sf-decor-line { position: absolute; z-index: 5; pointer-events: none; background: var(--line-color); }
-        .decor-h { width: 100%; height: 1px; top: 8vh; }
-        .decor-v { width: 1px; height: 100%; left: 50%; transform: translateX(-50%); opacity: 0.3; }
-        .crosshair { position: absolute; width: 15px; height: 15px; z-index: 5; pointer-events: none; }
-        .crosshair::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(255,255,255,0.4); }
-        .crosshair::after { content: ''; position: absolute; top: 0; left: 50%; width: 1px; height: 100%; background: rgba(255,255,255,0.4); }
+        /* Interface layer */
+        .interface-layer{position:absolute;top:0;left:0;width:100%;height:100%;z-index:10;pointer-events:none;display:flex;justify-content:space-between;padding:60px;}
 
-        /* --- 인터페이스 레이어 --- */
-        .interface-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; justify-content: space-between; padding: 60px; }
+        /* Profile panels */
+        .profile-panel{pointer-events:auto;width:26vw;height:75vh;display:flex;flex-direction:column;justify-content:flex-end;position:relative;}
+        .profile-panel.left{margin-left:12vw;}
+        .profile-panel.right{margin-right:12vw;align-items:flex-end;}
 
-        /* 상단 HUD 컨트롤 */
-        .upload-hud { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; pointer-events: auto; background: rgba(0,0,0,0.7); padding: 8px 15px; border-radius: 4px; border: 1px solid var(--line-color); backdrop-filter: blur(5px); z-index: 100; }
-        .sf-btn { display: inline-flex; align-items: center; padding: 5px 10px; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: #fff; font-size: 11px; font-weight:600; cursor: pointer; text-transform: uppercase; transition: 0.2s; border-radius: 2px; }
-        .sf-btn:hover { background: rgba(255,255,255,0.1); border-color: #fff; }
-        .sf-btn.export-btn { background: rgba(0, 240, 255, 0.1); border-color: rgba(0, 240, 255, 0.5); color: #00f0ff; margin-left: 10px; }
-        .sf-btn.export-btn:hover { background: rgba(0, 240, 255, 0.3); box-shadow: 0 0 10px rgba(0, 240, 255, 0.5); }
-        .sf-btn input[type="file"], .sf-btn input[type="color"] { display: none; }
-        .color-circle { width: 8px; height: 8px; transform: rotate(45deg); display: inline-block; margin-right: 6px; box-shadow: 0 0 5px currentColor; }
+        /* Tags */
+        .tag-group{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;width:100%;}
+        .profile-panel.right .tag-group{justify-content:flex-end;}
+        .sf-tag{position:relative;font-size:11px;padding:6px 14px;color:#fff;outline:none;letter-spacing:0.1em;z-index:1;display:inline-block;}
+        .sf-tag::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);border:1px solid var(--line-color);z-index:-1;}
+        .profile-panel.left .sf-tag::before{transform:skewX(-15deg);border-bottom:2px solid var(--theme-a);}
+        .profile-panel.right .sf-tag::before{transform:skewX(15deg);border-bottom:2px solid var(--theme-b);}
 
-        /* --- 미학적 프로필 패널 --- */
-        .profile-panel { pointer-events: auto; width: 26vw; height: 75vh; display: flex; flex-direction: column; justify-content: flex-end; position: relative; }
-        .profile-panel.left { margin-left: 12vw; }
-        .profile-panel.right { margin-right: 12vw; align-items: flex-end; }
+        /* ── Codename (하단으로 이동, 글로우 은은하게) ── */
+        .codename{font-size:var(--name-size);font-weight:900;letter-spacing:0.05em;text-transform:uppercase;margin-top:28px;line-height:1;outline:none;color:#fff;}
+        .profile-panel.left .codename{color:var(--theme-a);text-shadow:0 0 30px rgba(0,0,0,0.8),0 0 60px rgba(0,0,0,0.5);}
+        .profile-panel.right .codename{color:var(--theme-b);text-shadow:0 0 30px rgba(0,0,0,0.8),0 0 60px rgba(0,0,0,0.5);text-align:right;}
 
-        /* --- [BUG FIX] 해시태그 디자인 전면 재구축 (사선 스큐 기법) --- */
-        .tag-group { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; width: 100%; }
-        .profile-panel.right .tag-group { justify-content: flex-end; }
-        
-        .sf-tag { 
-            position: relative;
-            font-size: 11px; padding: 6px 14px; color: #fff; outline: none; letter-spacing: 0.1em;
-            z-index: 1; /* 텍스트는 위에 띄움 */
-            display: inline-block;
-        }
-        /* 가상 요소를 활용해 배경만 날렵하게 비틉니다. 캔버스 캡처 호환성 100%! */
-        .sf-tag::before {
-            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.6);
-            border: 1px solid var(--line-color);
-            z-index: -1; /* 텍스트 뒤로 */
-        }
-        /* 왼쪽 캐릭터 태그: 우상향 사선 */
-        .profile-panel.left .sf-tag::before { 
-            transform: skewX(-15deg); 
-            border-bottom: 2px solid var(--theme-a); 
-        }
-        /* 오른쪽 캐릭터 태그: 좌상향 사선 (완벽한 대칭) */
-        .profile-panel.right .sf-tag::before { 
-            transform: skewX(15deg); 
-            border-bottom: 2px solid var(--theme-b); 
-        }
+        /* Stat grid */
+        .stat-grid{width:100%;display:grid;gap:16px 0;grid-template-columns:130px 1fr;align-items:center;}
+        .profile-panel.right .stat-grid{text-align:right;grid-template-columns:1fr 130px;}
+        .stat-label{font-size:11px;letter-spacing:0.15em;text-transform:uppercase;font-weight:700;outline:none;position:relative;white-space:nowrap;}
+        .profile-panel.left .stat-label{color:var(--theme-a);padding-left:18px;}
+        .profile-panel.left .stat-label::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%) rotate(45deg);width:5px;height:5px;border:1px solid var(--theme-a);background:transparent;}
+        .profile-panel.right .stat-label{color:var(--theme-b);padding-right:18px;}
+        .profile-panel.right .stat-label::after{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%) rotate(45deg);width:5px;height:5px;border:1px solid var(--theme-b);background:transparent;}
+        .stat-value{font-size:14px;color:#e2e8f0;font-weight:300;line-height:1.6;word-break:keep-all;outline:none;}
 
-        .codename { font-size: 3.5vw; font-weight: 900; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 30px; line-height: 1; outline: none; color: #fff; }
-        .profile-panel.left .codename { text-shadow: 0 0 20px var(--theme-a); }
-        .profile-panel.right .codename { text-shadow: 0 0 20px var(--theme-b); text-align: right; }
-
-        /* 데이터 그리드 */
-        .stat-grid { width: 100%; display: grid; gap: 16px 0; grid-template-columns: 130px 1fr; align-items: center; }
-        .profile-panel.right .stat-grid { text-align: right; grid-template-columns: 1fr 130px; }
-
-        .stat-label { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 700; outline: none; position: relative; white-space: nowrap; }
-        .profile-panel.left .stat-label { color: var(--theme-a); padding-left: 18px; }
-        .profile-panel.left .stat-label::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%) rotate(45deg); width: 6px; height: 6px; background: var(--theme-a); box-shadow: 0 0 5px var(--theme-a); }
-        .profile-panel.right .stat-label { color: var(--theme-b); padding-right: 18px; }
-        .profile-panel.right .stat-label::after { content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%) rotate(45deg); width: 6px; height: 6px; background: var(--theme-b); box-shadow: 0 0 5px var(--theme-b); }
-
-        .stat-value { font-size: 14px; color: #e2e8f0; font-weight: 300; line-height: 1.6; word-break: keep-all; outline: none; }
-
-        /* --- 중앙 페어명 & 서브타이틀 --- */
-        .center-pair-hud { position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%); text-align: center; width: 40vw; pointer-events: auto; display: flex; flex-direction: column; align-items: center; }
-        .center-pair-name { display: inline-block; width: 100%; background: transparent; border: none; color: #fff; font-size: 1.8vw; font-weight: 300; text-align: center; letter-spacing: 0.6em; outline: none; text-transform: uppercase; text-shadow: 0 0 15px rgba(255, 255, 255, 0.4); margin-bottom: 8px; }
-        .center-pair-sub { display: inline-block; width: 80%; font-size: 10px; color: #fff; opacity: 0.6; letter-spacing: 0.4em; text-transform: uppercase; font-weight: 400; outline: none; }
-        .center-target-ui { width: 30px; height: 30px; border: 1px solid var(--line-color); border-radius: 50%; position: absolute; top: -40px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; pointer-events: none; }
-        .center-target-ui::after { content: ''; width: 4px; height: 4px; background: #fff; border-radius: 50%; }
+        /* Center pair */
+        .center-pair-hud{position:absolute;bottom:60px;left:50%;transform:translateX(-50%);text-align:center;width:40vw;pointer-events:auto;display:flex;flex-direction:column;align-items:center;}
+        .center-pair-name{display:inline-block;width:100%;background:transparent;border:none;color:#fff;font-size:1.8vw;font-weight:300;text-align:center;letter-spacing:0.6em;outline:none;text-transform:uppercase;margin-bottom:8px;opacity:0.9;}
+        .center-pair-sub{display:inline-block;width:80%;font-size:10px;color:#fff;opacity:0.5;letter-spacing:0.4em;text-transform:uppercase;font-weight:400;outline:none;}
+        .center-target-ui{width:24px;height:24px;border:1px solid rgba(255,255,255,0.15);border-radius:50%;position:absolute;top:-35px;left:50%;transform:translateX(-50%);display:flex;align-items:center;justify-content:center;pointer-events:none;}
+        .center-target-ui::after{content:'';width:3px;height:3px;background:rgba(255,255,255,0.5);border-radius:50%;}
     </style>
 </head>
 <body>
     <div class="capture-canvas" id="export-area">
         <div class="sf-decor-line decor-h"></div>
-        <div class="sf-decor-line decor-v"></div>
+
+        <!-- SF 경계 십자 라인 -->
+        <div class="boundary-line boundary-left">
+            <div class="boundary-cross" style="top:15%;"><div class="glow"></div></div>
+            <div class="boundary-cross" style="top:35%;"><div class="glow"></div></div>
+            <div class="boundary-cross" style="top:55%;"><div class="glow"></div></div>
+            <div class="boundary-cross" style="top:75%;"><div class="glow"></div></div>
+        </div>
+        <div class="boundary-line boundary-right">
+            <div class="boundary-cross" style="top:20%;"><div class="glow"></div></div>
+            <div class="boundary-cross" style="top:40%;"><div class="glow"></div></div>
+            <div class="boundary-cross" style="top:60%;"><div class="glow"></div></div>
+            <div class="boundary-cross" style="top:80%;"><div class="glow"></div></div>
+        </div>
+        <div class="boundary-line boundary-center">
+            <div class="boundary-cross" style="top:10%;"><div class="glow"></div></div>
+            <div class="boundary-cross" style="top:30%;"><div class="glow"></div></div>
+            <div class="boundary-cross" style="top:50%;"><div class="glow"></div></div>
+            <div class="boundary-cross" style="top:70%;"><div class="glow"></div></div>
+            <div class="boundary-cross" style="top:90%;"><div class="glow"></div></div>
+        </div>
 
         <div class="panel-wrapper wrap-sub left">
             <div class="img-panel img-sub" id="panel-sub-a"></div>
@@ -151,163 +158,164 @@
         </div>
 
         <div class="interface-layer">
-            <div class="crosshair" style="top: 8vh; left: 11vw; transform: translate(-50%, -50%);"></div>
-            <div class="crosshair" style="top: 8vh; right: 11vw; transform: translate(50%, -50%);"></div>
+            <div class="crosshair" style="top:8vh;left:11vw;transform:translate(-50%,-50%);"></div>
+            <div class="crosshair" style="top:8vh;right:11vw;transform:translate(50%,-50%);"></div>
 
             <div class="upload-hud" id="hud-controls">
-                <label class="sf-btn" style="border: none; padding-left:0;">
-                    <span class="color-circle" style="background:var(--theme-a)" id="circle-a"></span> COLOR A
-                    <input type="color" id="color-picker-a" value="#00f0ff" onchange="updateTheme(event, 'a')">
+                <label class="sf-btn" style="border:none;padding-left:0;">
+                    <span class="color-circle" style="background:var(--theme-a)" id="circle-a"></span>A
+                    <input type="color" id="color-picker-a" value="#00f0ff" onchange="updateTheme(event,'a')">
                 </label>
-                <label class="sf-btn">Sub A<input type="file" accept="image/*" onchange="loadImage(event, 'panel-sub-a')"></label>
-                <label class="sf-btn">Bg A<input type="file" accept="image/*" onchange="loadImage(event, 'panel-bg-a')"></label>
-                <span style="color:var(--text-dim); margin: 0 10px;">|</span>
-                <label class="sf-btn">Bg B<input type="file" accept="image/*" onchange="loadImage(event, 'panel-bg-b')"></label>
-                <label class="sf-btn">Sub B<input type="file" accept="image/*" onchange="loadImage(event, 'panel-sub-b')"></label>
-                <label class="sf-btn" style="border: none;">
-                    <span class="color-circle" style="background:var(--theme-b)" id="circle-b"></span> COLOR B
-                    <input type="color" id="color-picker-b" value="#ff0055" onchange="updateTheme(event, 'b')">
+                <label class="sf-btn">Sub A<input type="file" accept="image/*" onchange="loadImage(event,'panel-sub-a')"></label>
+                <label class="sf-btn">Bg A<input type="file" accept="image/*" onchange="loadImage(event,'panel-bg-a')"></label>
+                <span class="hud-divider">|</span>
+                <label class="sf-btn">Bg B<input type="file" accept="image/*" onchange="loadImage(event,'panel-bg-b')"></label>
+                <label class="sf-btn">Sub B<input type="file" accept="image/*" onchange="loadImage(event,'panel-sub-b')"></label>
+                <label class="sf-btn" style="border:none;">
+                    <span class="color-circle" style="background:var(--theme-b)" id="circle-b"></span>B
+                    <input type="color" id="color-picker-b" value="#ff0055" onchange="updateTheme(event,'b')">
                 </label>
-                <button class="sf-btn export-btn" onclick="exportImage()">[ EXPORT TO IMAGE ]</button>
+                <span class="hud-divider">|</span>
+                <div class="hud-size">
+                    <span>SIZE</span>
+                    <input type="range" id="nameSizeSlider" min="15" max="60" value="35" oninput="updateNameSize(this.value)">
+                </div>
+                <button class="sf-btn export-btn" onclick="exportImage()">EXPORT</button>
             </div>
 
+            <!-- 프로필 A: 태그 → 스탯 → 코드네임(하단) -->
             <div class="profile-panel left">
                 <div class="tag-group">
-                    <div class="sf-tag editable-text" id="tag-a-1" contenteditable="true" spellcheck="false">#TAG_WORD_01</div>
-                    <div class="sf-tag editable-text" id="tag-a-2" contenteditable="true" spellcheck="false">#KEYWORD</div>
-                    <div class="sf-tag editable-text" id="tag-a-3" contenteditable="true" spellcheck="false">#STATUS_ALIVE</div>
+                    <div class="sf-tag" id="tag-a-1" contenteditable="true" spellcheck="false">#TAG_WORD_01</div>
+                    <div class="sf-tag" id="tag-a-2" contenteditable="true" spellcheck="false">#KEYWORD</div>
+                    <div class="sf-tag" id="tag-a-3" contenteditable="true" spellcheck="false">#STATUS_ALIVE</div>
                 </div>
-                <div class="codename editable-text" id="codename-input-a" contenteditable="true" spellcheck="false" oninput="syncText('a')">ALPHA</div>
                 <div class="stat-grid">
-                    <div class="stat-label editable-text" id="lbl-a-1" contenteditable="true" spellcheck="false">NAME</div>
-                    <div class="stat-value editable-text" id="val-a-1" contenteditable="true" spellcheck="false">이름 입력란</div>
-                    <div class="stat-label editable-text" id="lbl-a-2" contenteditable="true" spellcheck="false">AGE</div>
-                    <div class="stat-value editable-text" id="val-a-2" contenteditable="true" spellcheck="false">나이 입력</div>
-                    <div class="stat-label editable-text" id="lbl-a-3" contenteditable="true" spellcheck="false">NATION</div>
-                    <div class="stat-value editable-text" id="val-a-3" contenteditable="true" spellcheck="false">국적 입력</div>
-                    <div class="stat-label editable-text" id="lbl-a-4" contenteditable="true" spellcheck="false">AFFILIATION</div>
-                    <div class="stat-value editable-text" id="val-a-4" contenteditable="true" spellcheck="false">소속 입력</div>
-                    <div class="stat-label editable-text" id="lbl-a-5" contenteditable="true" spellcheck="false">PERSONALITY</div>
-                    <div class="stat-value editable-text" id="val-a-5" contenteditable="true" spellcheck="false">성격 묘사</div>
-                    <div class="stat-label editable-text" id="lbl-a-6" contenteditable="true" spellcheck="false">BACKGROUND</div>
-                    <div class="stat-value editable-text" id="val-a-6" contenteditable="true" spellcheck="false">세부 설정 및 과거사.</div>
-                    <div class="stat-label editable-text" id="lbl-a-7" contenteditable="true" spellcheck="false">ETC</div>
-                    <div class="stat-value editable-text" id="val-a-7" contenteditable="true" spellcheck="false">추가 메모</div>
+                    <div class="stat-label" id="lbl-a-1" contenteditable="true" spellcheck="false">NAME</div>
+                    <div class="stat-value" id="val-a-1" contenteditable="true" spellcheck="false">이름 입력란</div>
+                    <div class="stat-label" id="lbl-a-2" contenteditable="true" spellcheck="false">AGE</div>
+                    <div class="stat-value" id="val-a-2" contenteditable="true" spellcheck="false">나이 입력</div>
+                    <div class="stat-label" id="lbl-a-3" contenteditable="true" spellcheck="false">NATION</div>
+                    <div class="stat-value" id="val-a-3" contenteditable="true" spellcheck="false">국적 입력</div>
+                    <div class="stat-label" id="lbl-a-4" contenteditable="true" spellcheck="false">AFFILIATION</div>
+                    <div class="stat-value" id="val-a-4" contenteditable="true" spellcheck="false">소속 입력</div>
+                    <div class="stat-label" id="lbl-a-5" contenteditable="true" spellcheck="false">PERSONALITY</div>
+                    <div class="stat-value" id="val-a-5" contenteditable="true" spellcheck="false">성격 묘사</div>
+                    <div class="stat-label" id="lbl-a-6" contenteditable="true" spellcheck="false">BACKGROUND</div>
+                    <div class="stat-value" id="val-a-6" contenteditable="true" spellcheck="false">세부 설정 및 과거사.</div>
+                    <div class="stat-label" id="lbl-a-7" contenteditable="true" spellcheck="false">ETC</div>
+                    <div class="stat-value" id="val-a-7" contenteditable="true" spellcheck="false">추가 메모</div>
                 </div>
+                <div class="codename" id="codename-input-a" contenteditable="true" spellcheck="false" oninput="syncText('a')">ALPHA</div>
             </div>
 
+            <!-- 프로필 B: 태그 → 스탯 → 코드네임(하단) -->
             <div class="profile-panel right">
                 <div class="tag-group">
-                    <div class="sf-tag editable-text" id="tag-b-1" contenteditable="true" spellcheck="false">#CLASSIFIED</div>
-                    <div class="sf-tag editable-text" id="tag-b-2" contenteditable="true" spellcheck="false">#KEYWORD</div>
-                    <div class="sf-tag editable-text" id="tag-b-3" contenteditable="true" spellcheck="false">#TAG_WORD_02</div>
+                    <div class="sf-tag" id="tag-b-1" contenteditable="true" spellcheck="false">#CLASSIFIED</div>
+                    <div class="sf-tag" id="tag-b-2" contenteditable="true" spellcheck="false">#KEYWORD</div>
+                    <div class="sf-tag" id="tag-b-3" contenteditable="true" spellcheck="false">#TAG_WORD_02</div>
                 </div>
-                <div class="codename editable-text" id="codename-input-b" contenteditable="true" spellcheck="false" oninput="syncText('b')">OMEGA</div>
                 <div class="stat-grid">
-                    <div class="stat-value editable-text" id="val-b-1" contenteditable="true" spellcheck="false">이름 입력란</div>
-                    <div class="stat-label editable-text" id="lbl-b-1" contenteditable="true" spellcheck="false">NAME</div>
-                    <div class="stat-value editable-text" id="val-b-2" contenteditable="true" spellcheck="false">나이 입력</div>
-                    <div class="stat-label editable-text" id="lbl-b-2" contenteditable="true" spellcheck="false">AGE</div>
-                    <div class="stat-value editable-text" id="val-b-3" contenteditable="true" spellcheck="false">국적 입력</div>
-                    <div class="stat-label editable-text" id="lbl-b-3" contenteditable="true" spellcheck="false">NATION</div>
-                    <div class="stat-value editable-text" id="val-b-4" contenteditable="true" spellcheck="false">소속 입력</div>
-                    <div class="stat-label editable-text" id="lbl-b-4" contenteditable="true" spellcheck="false">AFFILIATION</div>
-                    <div class="stat-value editable-text" id="val-b-5" contenteditable="true" spellcheck="false">성격 묘사</div>
-                    <div class="stat-label editable-text" id="lbl-b-5" contenteditable="true" spellcheck="false">PERSONALITY</div>
-                    <div class="stat-value editable-text" id="val-b-6" contenteditable="true" spellcheck="false">세부 설정 및 과거사.</div>
-                    <div class="stat-label editable-text" id="lbl-b-6" contenteditable="true" spellcheck="false">BACKGROUND</div>
-                    <div class="stat-value editable-text" id="val-b-7" contenteditable="true" spellcheck="false">추가 메모</div>
-                    <div class="stat-label editable-text" id="lbl-b-7" contenteditable="true" spellcheck="false">ETC</div>
+                    <div class="stat-value" id="val-b-1" contenteditable="true" spellcheck="false">이름 입력란</div>
+                    <div class="stat-label" id="lbl-b-1" contenteditable="true" spellcheck="false">NAME</div>
+                    <div class="stat-value" id="val-b-2" contenteditable="true" spellcheck="false">나이 입력</div>
+                    <div class="stat-label" id="lbl-b-2" contenteditable="true" spellcheck="false">AGE</div>
+                    <div class="stat-value" id="val-b-3" contenteditable="true" spellcheck="false">국적 입력</div>
+                    <div class="stat-label" id="lbl-b-3" contenteditable="true" spellcheck="false">NATION</div>
+                    <div class="stat-value" id="val-b-4" contenteditable="true" spellcheck="false">소속 입력</div>
+                    <div class="stat-label" id="lbl-b-4" contenteditable="true" spellcheck="false">AFFILIATION</div>
+                    <div class="stat-value" id="val-b-5" contenteditable="true" spellcheck="false">성격 묘사</div>
+                    <div class="stat-label" id="lbl-b-5" contenteditable="true" spellcheck="false">PERSONALITY</div>
+                    <div class="stat-value" id="val-b-6" contenteditable="true" spellcheck="false">세부 설정 및 과거사.</div>
+                    <div class="stat-label" id="lbl-b-6" contenteditable="true" spellcheck="false">BACKGROUND</div>
+                    <div class="stat-value" id="val-b-7" contenteditable="true" spellcheck="false">추가 메모</div>
+                    <div class="stat-label" id="lbl-b-7" contenteditable="true" spellcheck="false">ETC</div>
                 </div>
+                <div class="codename" id="codename-input-b" contenteditable="true" spellcheck="false" oninput="syncText('b')">OMEGA</div>
             </div>
 
             <div class="center-pair-hud">
                 <div class="center-target-ui"></div>
-                <div class="center-pair-name editable-text" id="pair-main" contenteditable="true" spellcheck="false">PAIR CONNECTION</div>
-                <div class="center-pair-sub editable-text" id="pair-sub" contenteditable="true" spellcheck="false">ENTER YOUR SUBTITLE OR RELATIONSHIP STATUS HERE</div>
+                <div class="center-pair-name" id="pair-main" contenteditable="true" spellcheck="false">PAIR CONNECTION</div>
+                <div class="center-pair-sub" id="pair-sub" contenteditable="true" spellcheck="false">ENTER YOUR SUBTITLE OR RELATIONSHIP STATUS HERE</div>
             </div>
         </div>
     </div>
 
     <script>
-        function saveToLocal(key, value) {
-            try { localStorage.setItem(key, value); } 
-            catch (e) { console.warn("[SYSTEM] 로컬 스토리지 한계 도달."); }
-        }
+        function saveToLocal(key,value){try{localStorage.setItem(key,value);}catch(e){}}
 
-        document.querySelectorAll('.editable-text').forEach(el => {
-            el.addEventListener('input', () => saveToLocal('text_' + el.id, el.innerHTML));
+        // Auto-save all editable fields
+        document.querySelectorAll('[contenteditable="true"]').forEach(el=>{
+            el.addEventListener('input',()=>saveToLocal('sf_'+el.id,el.innerHTML));
         });
 
-        function syncText(target) {
-            let text = document.getElementById(`codename-input-${target}`).innerText.trim().toUpperCase();
-            if (text === '') text = 'UNKNOWN';
-            document.getElementById(`vert-text-${target}`).innerText = text;
+        function syncText(target){
+            let text=document.getElementById('codename-input-'+target).innerText.trim().toUpperCase();
+            if(text==='')text='UNKNOWN';
+            document.getElementById('vert-text-'+target).innerText=text;
         }
 
-        function updateTheme(event, target) {
-            const color = event.target.value;
-            applyTheme(target, color);
-            saveToLocal(`theme_${target}`, color);
+        function updateTheme(event,target){
+            const color=event.target.value;
+            applyTheme(target,color);
+            saveToLocal('sf_theme_'+target,color);
         }
 
-        function applyTheme(target, color) {
-            document.documentElement.style.setProperty(`--theme-${target}`, color);
-            document.getElementById(`circle-${target}`).style.background = color;
-            document.getElementById(`color-picker-${target}`).value = color;
+        function applyTheme(target,color){
+            document.documentElement.style.setProperty('--theme-'+target,color);
+            document.getElementById('circle-'+target).style.background=color;
+            document.getElementById('color-picker-'+target).value=color;
         }
 
-        function loadImage(event, targetId) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (e) => { 
-                const dataUrl = e.target.result;
-                document.getElementById(targetId).style.backgroundImage = `url('${dataUrl}')`; 
-                saveToLocal('img_' + targetId, dataUrl);
+        function updateNameSize(val){
+            document.documentElement.style.setProperty('--name-size',val/10+'vw');
+            saveToLocal('sf_namesize',val);
+        }
+
+        function loadImage(event,targetId){
+            const file=event.target.files[0];if(!file)return;
+            const reader=new FileReader();
+            reader.onload=e=>{
+                document.getElementById(targetId).style.backgroundImage=`url('${e.target.result}')`;
+                saveToLocal('sf_img_'+targetId,e.target.result);
             };
             reader.readAsDataURL(file);
         }
 
-        window.onload = () => {
-            document.querySelectorAll('.editable-text').forEach(el => {
-                const savedText = localStorage.getItem('text_' + el.id);
-                if (savedText) el.innerHTML = savedText;
+        window.onload=()=>{
+            document.querySelectorAll('[contenteditable="true"]').forEach(el=>{
+                const saved=localStorage.getItem('sf_'+el.id);
+                if(saved)el.innerHTML=saved;
             });
-            syncText('a'); syncText('b');
-            
-            const savedThemeA = localStorage.getItem('theme_a');
-            if (savedThemeA) applyTheme('a', savedThemeA);
-            const savedThemeB = localStorage.getItem('theme_b');
-            if (savedThemeB) applyTheme('b', savedThemeB);
+            syncText('a');syncText('b');
 
-            ['panel-sub-a', 'panel-bg-a', 'panel-bg-b', 'panel-sub-b'].forEach(id => {
-                const savedImg = localStorage.getItem('img_' + id);
-                if (savedImg) document.getElementById(id).style.backgroundImage = `url('${savedImg}')`;
+            const ta=localStorage.getItem('sf_theme_a');if(ta)applyTheme('a',ta);
+            const tb=localStorage.getItem('sf_theme_b');if(tb)applyTheme('b',tb);
+            const ns=localStorage.getItem('sf_namesize');
+            if(ns){document.getElementById('nameSizeSlider').value=ns;updateNameSize(ns);}
+
+            ['panel-sub-a','panel-bg-a','panel-bg-b','panel-sub-b'].forEach(id=>{
+                const saved=localStorage.getItem('sf_img_'+id);
+                if(saved)document.getElementById(id).style.backgroundImage=`url('${saved}')`;
             });
         };
 
-        function exportImage() {
-            const hud = document.getElementById('hud-controls');
-            hud.style.display = 'none'; 
-            
-            console.log("[SYSTEM] 무결점 고해상도 렌더링 시퀀스 가동...");
-
-            document.fonts.ready.then(function() {
-                html2canvas(document.getElementById('export-area'), {
-                    backgroundColor: "#000000",
-                    scale: 2, 
-                    useCORS: true,
-                    allowTaint: true,
-                    windowWidth: document.documentElement.offsetWidth,
-                    windowHeight: document.documentElement.offsetHeight
-                }).then(canvas => {
-                    const link = document.createElement('a');
-                    link.download = 'SF_PAIR_PROFILE_MASTER.png';
-                    link.href = canvas.toDataURL('image/png');
+        function exportImage(){
+            const hud=document.getElementById('hud-controls');
+            hud.style.display='none';
+            document.fonts.ready.then(()=>{
+                html2canvas(document.getElementById('export-area'),{
+                    backgroundColor:"#000",scale:2,useCORS:true,allowTaint:true,
+                    windowWidth:document.documentElement.offsetWidth,
+                    windowHeight:document.documentElement.offsetHeight
+                }).then(canvas=>{
+                    const link=document.createElement('a');
+                    link.download='SF_PAIR_PROFILE.png';
+                    link.href=canvas.toDataURL('image/png');
                     link.click();
-                    hud.style.display = 'flex'; 
-                    console.log("[SYSTEM] 캡처 완료! 보스, 더 이상의 버그는 없습니다.");
+                    hud.style.display='flex';
                 });
             });
         }
